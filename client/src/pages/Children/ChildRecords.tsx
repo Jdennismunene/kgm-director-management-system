@@ -6,7 +6,7 @@ import ChildRecordHeader from "../../components/Children/ChildRecordHeader";
 import ChildRecordTabs from "../../components/Children/ChildRecordTabs";
 import PersonalInformation from "../../components/Children/PersonalInformation";
 import ParentInformation from "../../components/Children/ParentInformation";
-import AcademicInformationComponent from "../../components/Children/AcademicInformation";
+import AcademicInformation from "../../components/Children/AcademicInformation";
 import HealthInformation from "../../components/Children/HealthInformation";
 import QuickInfo from "../../components/Children/QuickInfo";
 import RecentActivity from "../../components/Children/RecentActivity";
@@ -35,7 +35,7 @@ import {
 
 import {
   academicInformationData,
-  type AcademicInformation as AcademicInformationType,
+  type AcademicInformationType as AcademicInformationType,
 } from "../../data/academicInformation";
 
 import {
@@ -186,7 +186,7 @@ const ChildRecords = () => {
               onUpdate={handleParentInfoUpdate}
             />
 
-            <AcademicInformationComponent
+            <AcademicInformation
               info={academicInfo}
               onUpdate={handleAcademicInfoUpdate}
             />

@@ -1,11 +1,11 @@
 import { Save, X } from "lucide-react";
 import { useState } from "react";
-import type { AcademicInformation } from "../../data/academicInformation";
+import type { AcademicInformationType } from "../../data/academicInformation";
 
 interface EditAcademicInformationModalProps {
-  info: AcademicInformation;
+  info: AcademicInformationType;
   onClose: () => void;
-  onSave: (updatedInfo: AcademicInformation) => void;
+  onSave: (updatedInfo: AcademicInformationType) => void;
 }
 
 const EditAcademicInformationModal = ({

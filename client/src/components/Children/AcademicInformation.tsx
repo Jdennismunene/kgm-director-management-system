@@ -1,11 +1,11 @@
 import { Edit, GraduationCap } from "lucide-react";
 import { useState } from "react";
 import EditAcademicInformationModal from "./EditAcademicInformationModal";
-import type { AcademicInformation } from "../../data/academicInformation";
+import type { AcademicInformationType } from "../../data/academicInformation";
 
 interface AcademicInformationProps {
-  info: AcademicInformation;
-  onUpdate: (updatedInfo: AcademicInformation) => void;
+  info: AcademicInformationType;
+  onUpdate: (updatedInfo: AcademicInformationType) => void;
 }
 
 const AcademicInformation = ({
@@ -14,7 +14,7 @@ const AcademicInformation = ({
 }: AcademicInformationProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const handleSave = (updatedInfo: AcademicInformation) => {
+  const handleSave = (updatedInfo: AcademicInformationType) => {
     onUpdate(updatedInfo);
     setShowEditModal(false);
   };
