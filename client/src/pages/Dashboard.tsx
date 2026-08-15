@@ -29,7 +29,7 @@ import QuickAction from "../components/QuickAction";
 
 const Dashboard = () => {
   return (
-    <div className="p-4 sm:p-5 lg:p-6 mt-14">
+    <div className="p-4 sm:p-5 lg:p-6">
       {/* =========================================
           STATISTICS CARDS
       ========================================== */}

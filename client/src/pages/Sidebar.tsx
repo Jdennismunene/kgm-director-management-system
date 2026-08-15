@@ -1,35 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-
-import {
-  Home,
-  Users,
-  UserRound,
-  BookOpen,
-  CalendarCheck,
-  Heart,
-  BookMarked,
-  FolderOpen,
-  CalendarDays,
-  Droplets,
-  GraduationCap,
-  HandCoins,
-  MessageCircle,
-  Megaphone,
-  BarChart3,
-  Settings,
-  ChevronRight,
-  ChevronDown,
-  ChevronLeft,
-  Menu,
-  X,
-  Church,
-  FileText,
-  Camera,
-  Phone,
-  Mail,
-  MessageSquare,
-} from "lucide-react";
+import {Home,Users,UserRound,BookOpen,CalendarCheck,Heart,BookMarked,FolderOpen,CalendarDays,Droplets,GraduationCap,HandCoins,MessageCircle,Megaphone,BarChart3,Settings,ChevronRight,ChevronDown,ChevronLeft,Menu,X,FileText,Camera,Phone,Mail,MessageSquare,} from "lucide-react";
+import logo from '../assets/logo-kgm.png'
 
 interface SidebarProps {
   collapsed: boolean;
@@ -168,21 +140,7 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
         ====================================== */}
 
         <div
-          className="
-            h-19
-
-            flex
-            items-center
-
-            px-4
-
-            border-b
-            border-white/10
-            dark:border-slate-800
-
-            relative
-          "
-        >
+          className=" h-20 flex items-center px-4 border-b border-white/10 dark:border-slate-800 relative">
           {/* =================================
               EXPANDED LOGO
           ================================== */}
@@ -192,61 +150,23 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
 
               {/* Logo box */}
               <div
-                className="
-                  w-10
-                  h-10
-
-                  rounded-lg
-
-                  bg-white
-                  dark:bg-slate-800
-
-                  flex
-                  items-center
-                  justify-center
-
-                  transition-colors
-                  duration-300
-                "
-              >
-                <Church
-                  size={25}
-                  className="
-                    text-[#0f766e]
-                    dark:text-teal-400
-                  "
-                />
+                className=" w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center transition-colors duration-300 ">
+                <img src={logo} alt="logo" />
               </div>
 
               {/* Logo text */}
               <div>
                 <h1
-                  className="
-                    font-bold
-                    text-xl
-                    text-white
-                  "
-                >
+                  className=" font-bold text-xl text-white">
                   KGM
                 </h1>
-
                 <p
-                  className="
-                    text-[14px]
-                    text-white/70
-                    dark:text-slate-400
-                  "
-                >
+                  className=" text-[14px] text-white/70 dark:text-slate-400">
                   Sunday School
                 </p>
 
                 <p
-                  className="
-                    text-[11px]
-                    text-white/50
-                    dark:text-slate-500
-                  "
-                >
+                  className=" text-[11px] text-white/50 dark:text-slate-500 ">
                   Management System
                 </p>
               </div>
@@ -259,16 +179,8 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
           ================================== */}
 
           {collapsed && (
-            <div className="w-full flex justify-center">
-
-              <Church
-                size={25}
-                className="
-                  text-white
-                  dark:text-teal-400
-                "
-              />
-
+            <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center transition-colors duration-300 ">
+              <img src={logo} alt="logo" />
             </div>
           )}
 

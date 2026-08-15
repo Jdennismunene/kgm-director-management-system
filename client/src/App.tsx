@@ -6,6 +6,8 @@ import { Bell, Moon, Sun } from "lucide-react";
 
 import Sidebar from "./pages/Sidebar";
 import Dashboard from "./pages/Dashboard";
+import AllChildren from "./pages/Children/AllChildren";
+import AddChild from "./pages/Children/AddChild";
 
 const App = () => {
   // =========================================
@@ -63,79 +65,63 @@ const App = () => {
 
         <main
           className={`
-            min-h-screen
-            transition-all
-            duration-300
-            ease-in-out
-            bg-gray-50
-            dark:bg-slate-950
-
-            ${collapsed ? "lg:ml-20" : "lg:ml-64"}
-          `}
+    min-h-screen
+    transition-all
+    duration-300
+    ease-in-out
+    bg-gray-50
+    dark:bg-slate-950
+    ${collapsed ? "lg:ml-20" : "lg:ml-64"}
+  `}
         >
           {/* =====================================
               TOP HEADER
           ====================================== */}
 
           <header
-            className="
+            className={`
     fixed
     top-0
     right-0
     z-40
-
     h-16
-
     bg-white
     dark:bg-slate-900
-
     border-b
     border-gray-200
     dark:border-slate-700
-
     flex
     items-center
     justify-between
-
     px-4
     sm:px-6
-
     transition-all
     duration-300
-
     left-0
-    lg:left-64
-    
-  "
+    ${collapsed ? "lg:left-20" : "lg:left-64"}
+  `}
           >
             {/* =================================
                 LEFT SIDE
             ================================== */}
 
-            <div className="pl-12">
+            <div className="pl-12 md:flex gap-1 lg:gap-2">
               <h2
                 className="
                   text-base
                   sm:text-lg
+                  lg:text-2xl
                   font-semibold
                   text-gray-800
                   dark:text-white
+                  font-serif
                 "
               >
-                Sunday School Management System
+                Sunday School
               </h2>
-
-              <p
-                className="
-                  text-xs
-                  text-gray-500
-                  dark:text-gray-400
-                  hidden
-                  sm:block
-                "
-              >
-                Management Dashboard
-              </p>
+              <h3 className=" text-sm sm:text-lg lg:text-2xl font-serif font-semibold text-gray-800 dark:text-white">
+                Management System
+              </h3>
             </div>
 
             {/* =================================
@@ -283,421 +269,418 @@ const App = () => {
           {/* =====================================
               ROUTES
           ====================================== */}
-
-          <Routes>
-            {/* =================================
+          <div className="pt-16">
+            <Routes>
+              {/* =================================
                 DEFAULT ROUTE
             ================================== */}
 
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-            {/* =================================
+              {/* =================================
                 DASHBOARD
             ================================== */}
 
-            <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
 
-            {/* =================================
+              {/* =================================
                 MANAGEMENT
             ================================== */}
 
-            <Route
-              path="/children"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Children
-                </div>
-              }
-            />
+              <Route path="/children" element={<AllChildren />} />
 
-            <Route
-              path="/children/add"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Add Child
-                </div>
-              }
-            />
+              <Route path="/children/add" element={<AddChild />} />
 
-            <Route
-              path="/children/records"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Child Records
-                </div>
-              }
-            />
+              <Route
+                path="/children/records"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Child Records
+                  </div>
+                }
+              />
 
-            <Route
-              path="/teachers"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Teachers
-                </div>
-              }
-            />
+              <Route
+                path="/teachers"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Teachers
+                  </div>
+                }
+              />
 
-            <Route
-              path="/teachers/add"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Add Teacher
-                </div>
-              }
-            />
+              <Route
+                path="/teachers/add"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Add Teacher
+                  </div>
+                }
+              />
 
-            <Route
-              path="/teachers/records"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Teacher Records
-                </div>
-              }
-            />
+              <Route
+                path="/teachers/records"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Teacher Records
+                  </div>
+                }
+              />
 
-            <Route
-              path="/classes"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">Classes</div>
-              }
-            />
+              <Route
+                path="/classes"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Classes
+                  </div>
+                }
+              />
 
-            <Route
-              path="/classes/add"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Add Class
-                </div>
-              }
-            />
+              <Route
+                path="/classes/add"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Add Class
+                  </div>
+                }
+              />
 
-            <Route
-              path="/classes/members"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Class Members
-                </div>
-              }
-            />
+              <Route
+                path="/classes/members"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Class Members
+                  </div>
+                }
+              />
 
-            <Route
-              path="/attendance"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Attendance
-                </div>
-              }
-            />
+              <Route
+                path="/attendance"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Attendance
+                  </div>
+                }
+              />
 
-            <Route
-              path="/attendance/records"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Attendance Records
-                </div>
-              }
-            />
+              <Route
+                path="/attendance/records"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Attendance Records
+                  </div>
+                }
+              />
 
-            <Route
-              path="/attendance/reports"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Attendance Reports
-                </div>
-              }
-            />
+              <Route
+                path="/attendance/reports"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Attendance Reports
+                  </div>
+                }
+              />
 
-            <Route
-              path="/parents"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">Parents</div>
-              }
-            />
+              <Route
+                path="/parents"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Parents
+                  </div>
+                }
+              />
 
-            <Route
-              path="/parents/records"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Parent Records
-                </div>
-              }
-            />
+              <Route
+                path="/parents/records"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Parent Records
+                  </div>
+                }
+              />
 
-            {/* =================================
+              {/* =================================
                 MINISTRY
             ================================== */}
 
-            <Route
-              path="/lessons"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Lessons & Manuals
-                </div>
-              }
-            />
+              <Route
+                path="/lessons"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Lessons & Manuals
+                  </div>
+                }
+              />
 
-            <Route
-              path="/lessons/bible"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Bible Lessons
-                </div>
-              }
-            />
+              <Route
+                path="/lessons/bible"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Bible Lessons
+                  </div>
+                }
+              />
 
-            <Route
-              path="/lessons/plans"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Lesson Plans
-                </div>
-              }
-            />
+              <Route
+                path="/lessons/plans"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Lesson Plans
+                  </div>
+                }
+              />
 
-            <Route
-              path="/resources"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Resources / Library
-                </div>
-              }
-            />
+              <Route
+                path="/resources"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Resources / Library
+                  </div>
+                }
+              />
 
-            <Route
-              path="/resources/documents"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Documents
-                </div>
-              }
-            />
+              <Route
+                path="/resources/documents"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Documents
+                  </div>
+                }
+              />
 
-            <Route
-              path="/resources/photos"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">Photos</div>
-              }
-            />
+              <Route
+                path="/resources/photos"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Photos
+                  </div>
+                }
+              />
 
-            <Route
-              path="/resources/archives"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Archives
-                </div>
-              }
-            />
+              <Route
+                path="/resources/archives"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Archives
+                  </div>
+                }
+              />
 
-            <Route
-              path="/programs"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Programs
-                </div>
-              }
-            />
+              <Route
+                path="/programs"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Programs
+                  </div>
+                }
+              />
 
-            <Route
-              path="/programs/vbs"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Vocational Bible Studies
-                </div>
-              }
-            />
+              <Route
+                path="/programs/vbs"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Vocational Bible Studies
+                  </div>
+                }
+              />
 
-            <Route
-              path="/programs/seminars"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Teachers Seminars
-                </div>
-              }
-            />
+              <Route
+                path="/programs/seminars"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Teachers Seminars
+                  </div>
+                }
+              />
 
-            <Route
-              path="/events"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Events & Calendar
-                </div>
-              }
-            />
+              <Route
+                path="/events"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Events & Calendar
+                  </div>
+                }
+              />
 
-            <Route
-              path="/events/upcoming"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Upcoming Events
-                </div>
-              }
-            />
+              <Route
+                path="/events/upcoming"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Upcoming Events
+                  </div>
+                }
+              />
 
-            <Route
-              path="/events/past"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Past Events
-                </div>
-              }
-            />
+              <Route
+                path="/events/past"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Past Events
+                  </div>
+                }
+              />
 
-            <Route
-              path="/baptism"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Baptism Records
-                </div>
-              }
-            />
+              <Route
+                path="/baptism"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Baptism Records
+                  </div>
+                }
+              />
 
-            <Route
-              path="/baptism/documents"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Baptism Documentation
-                </div>
-              }
-            />
+              <Route
+                path="/baptism/documents"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Baptism Documentation
+                  </div>
+                }
+              />
 
-            {/* =================================
+              {/* =================================
                 DEVELOPMENT
             ================================== */}
 
-            <Route
-              path="/training"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Training & Certification
-                </div>
-              }
-            />
+              <Route
+                path="/training"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Training & Certification
+                  </div>
+                }
+              />
 
-            <Route
-              path="/training/certificates"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Certificates
-                </div>
-              }
-            />
+              <Route
+                path="/training/certificates"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Certificates
+                  </div>
+                }
+              />
 
-            <Route
-              path="/contributions"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Contributions
-                </div>
-              }
-            />
+              <Route
+                path="/contributions"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Contributions
+                  </div>
+                }
+              />
 
-            <Route
-              path="/contributions/welfare"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">Welfare</div>
-              }
-            />
+              <Route
+                path="/contributions/welfare"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Welfare
+                  </div>
+                }
+              />
 
-            <Route
-              path="/contributions/records"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Contribution Records
-                </div>
-              }
-            />
+              <Route
+                path="/contributions/records"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Contribution Records
+                  </div>
+                }
+              />
 
-            {/* =================================
+              {/* =================================
                 COMMUNICATION
             ================================== */}
 
-            <Route
-              path="/communication"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Communication
-                </div>
-              }
-            />
+              <Route
+                path="/communication"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Communication
+                  </div>
+                }
+              />
 
-            <Route
-              path="/communication/phones"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">Phones</div>
-              }
-            />
+              <Route
+                path="/communication/phones"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Phones
+                  </div>
+                }
+              />
 
-            <Route
-              path="/announcements"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Announcements
-                </div>
-              }
-            />
+              <Route
+                path="/announcements"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Announcements
+                  </div>
+                }
+              />
 
-            <Route
-              path="/announcements/email"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Email Announcements
-                </div>
-              }
-            />
+              <Route
+                path="/announcements/email"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Email Announcements
+                  </div>
+                }
+              />
 
-            <Route
-              path="/announcements/whatsapp"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  WhatsApp Announcements
-                </div>
-              }
-            />
+              <Route
+                path="/announcements/whatsapp"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    WhatsApp Announcements
+                  </div>
+                }
+              />
 
-            {/* =================================
+              {/* =================================
                 REPORTS
             ================================== */}
 
-            <Route
-              path="/reports"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Reports & Analytics
-                </div>
-              }
-            />
+              <Route
+                path="/reports"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Reports & Analytics
+                  </div>
+                }
+              />
 
-            <Route
-              path="/reports/analytics"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  Analytics
-                </div>
-              }
-            />
+              <Route
+                path="/reports/analytics"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    Analytics
+                  </div>
+                }
+              />
 
-            {/* =================================
+              {/* =================================
                 SYSTEM
             ================================== */}
 
-            <Route
-              path="/settings"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  General Settings
-                </div>
-              }
-            />
+              <Route
+                path="/settings"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    General Settings
+                  </div>
+                }
+              />
 
-            <Route
-              path="/settings/users"
-              element={
-                <div className="p-6 text-gray-800 dark:text-white">
-                  User Management
-                </div>
-              }
-            />
-          </Routes>
+              <Route
+                path="/settings/users"
+                element={
+                  <div className="p-6 text-gray-800 dark:text-white">
+                    User Management
+                  </div>
+                }
+              />
+            </Routes>
+          </div>
         </main>
       </div>
     </BrowserRouter>
