@@ -11,7 +11,7 @@ import {
 
 const AddChild = () => {
   return (
-    <div className="space-y-6 mx-4 mt-2 pb-3">
+    <div className="space-y-6 mx-4 mt-3 pb-3">
       {/* =========================
           PAGE HEADER
       ========================== */}

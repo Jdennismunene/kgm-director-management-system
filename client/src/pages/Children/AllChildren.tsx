@@ -1,4 +1,4 @@
-import { Plus, ChevronRight } from "lucide-react";
+import { Plus, ChevronRight, CheckCircle, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import ChildrenSummaryCards from "../../components/Children/ChildrenSummaryCards";
 import ChildrenFilterBar from "../../components/Children/ChildrenFilterBar";
@@ -23,6 +23,7 @@ const AllChildren = () => {
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [deletingChild, setDeletingChild] = useState<Child | null>(null);
   const [showAddChildModal, setShowAddChildModal] = useState(false);
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const filteredChildren = children.filter((child) => {
     const search = searchTerm.toLowerCase().trim();
 
@@ -67,7 +68,108 @@ const AllChildren = () => {
   );
 
   return (
-    <div className="p-6">
+     <div className="p-6">
+
+    {/* Success Notification */}
+    {showSuccessNotification && (
+      <div
+        className="
+          fixed
+          top-20
+          right-6
+          z-60
+          w-full
+          max-w-md
+          bg-white
+          dark:bg-gray-900
+          border
+          border-green-200
+          dark:border-green-800
+          rounded-xl
+          shadow-lg
+          px-4
+          py-4
+          flex
+          items-start
+          gap-3
+        "
+      >
+        {/* Success Icon */}
+        <div
+          className="
+            w-10
+            h-10
+            rounded-full
+            bg-green-50
+            dark:bg-green-950/50
+            flex
+            items-center
+            justify-center
+            shrink-0
+          "
+        >
+          <CheckCircle
+            size={21}
+            className="text-green-600 dark:text-green-400"
+          />
+        </div>
+
+        {/* Message */}
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+            Child registered successfully
+          </h3>
+
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            The child has been added to the Sunday School records.
+          </p>
+
+          <Link
+            to="/children"
+            className="
+              inline-flex
+              items-center
+              gap-1
+              mt-2
+              text-sm
+              font-medium
+              text-blue-600
+              dark:text-blue-400
+              hover:text-blue-700
+              dark:hover:text-blue-300
+            "
+          >
+            View All Children
+            <ChevronRight size={15} />
+          </Link>
+        </div>
+
+        {/* Close Notification */}
+        <button
+          type="button"
+          onClick={() => setShowSuccessNotification(false)}
+          className="
+            w-7
+            h-7
+            rounded-lg
+            flex
+            items-center
+            justify-center
+            text-gray-400
+            dark:text-gray-500
+            hover:bg-gray-100
+            dark:hover:bg-gray-800
+            hover:text-gray-600
+            dark:hover:text-gray-300
+            transition
+            cursor-pointer
+          "
+        >
+          <X size={17} />
+        </button>
+      </div>
+    )}
+
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
         <Link
@@ -242,8 +344,26 @@ const AllChildren = () => {
         <AddChildModal
           onClose={() => setShowAddChildModal(false)}
           onSave={(newChild) => {
+            // Add the new child to the list
             setChildren((currentChildren) => [...currentChildren, newChild]);
+
+            // Close modal
             setShowAddChildModal(false);
+
+            // Reset filters so the newly added child can be seen
+            setSearchTerm("");
+            setSelectedClass("");
+            setSelectedAge("");
+            setSelectedStatus("");
+            setCurrentPage(1);
+
+            // Show success notification
+            setShowSuccessNotification(true);
+
+            // Automatically hide notification after 6 seconds
+            setTimeout(() => {
+              setShowSuccessNotification(false);
+            }, 6000);
           }}
         />
       )}

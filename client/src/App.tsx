@@ -8,6 +8,7 @@ import Sidebar from "./pages/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import AllChildren from "./pages/Children/AllChildren";
 import AddChild from "./pages/Children/AddChild";
+import ChildRecords from "./pages/Children/ChildRecords";
 
 const App = () => {
   // =========================================
@@ -291,14 +292,7 @@ const App = () => {
 
               <Route path="/children/add" element={<AddChild />} />
 
-              <Route
-                path="/children/records"
-                element={
-                  <div className="p-6 text-gray-800 dark:text-white">
-                    Child Records
-                  </div>
-                }
-              />
+              <Route path="/children/records" element={<ChildRecords />} />
 
               <Route
                 path="/teachers"
