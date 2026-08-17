@@ -3,59 +3,212 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock3,
+  Plus,
   XCircle,
 } from "lucide-react";
+import { useMemo, useState } from "react";
+
+import AttendanceTable from "./AttendanceTable";
+import RecordAttendanceModal, {
+  type AttendanceRecord,
+} from "./RecordAttendanceModal";
+
+type AttendanceFilter =
+  | "all"
+  | "thisMonth"
+  | "lastMonth"
+  | "last3Months"
+  | "thisYear";
 
 const Attendance = () => {
-  const attendanceRecords = [
+  // =====================================================
+  // ATTENDANCE RECORDS
+  // =====================================================
+
+  const [attendanceRecords, setAttendanceRecords] = useState<
+    AttendanceRecord[]
+  >([
     {
+      id: 1,
       date: "Aug 9, 2026",
       program: "Sunday School",
       status: "Present",
       time: "9:00 AM",
     },
     {
+      id: 2,
       date: "Aug 2, 2026",
       program: "Sunday School",
       status: "Present",
       time: "9:05 AM",
     },
     {
+      id: 3,
       date: "Jul 26, 2026",
       program: "Sunday School",
       status: "Absent",
       time: "-",
     },
     {
+      id: 4,
       date: "Jul 19, 2026",
       program: "Sunday School",
       status: "Present",
       time: "9:02 AM",
     },
     {
+      id: 5,
       date: "Jul 12, 2026",
       program: "Sunday School",
       status: "Late",
       time: "9:25 AM",
     },
-  ];
+  ]);
+
+  // =====================================================
+  // STATE
+  // =====================================================
+
+  const [showModal, setShowModal] = useState(false);
+
+  const [filter, setFilter] = useState<AttendanceFilter>("thisMonth");
+
+  // =====================================================
+  // ADD ATTENDANCE RECORD
+  // =====================================================
+
+  const handleAddAttendance = (record: Omit<AttendanceRecord, "id">) => {
+    const newRecord: AttendanceRecord = {
+      id: Date.now(),
+      ...record,
+    };
+
+    setAttendanceRecords((previousRecords) => [newRecord, ...previousRecords]);
+
+    setShowModal(false);
+  };
+
+  // =====================================================
+  // FILTER ATTENDANCE
+  // =====================================================
+
+  const filteredRecords = useMemo(() => {
+    switch (filter) {
+      case "thisMonth":
+        return attendanceRecords.filter((record) =>
+          record.date.includes("Aug 2026"),
+        );
+
+      case "lastMonth":
+        return attendanceRecords.filter((record) =>
+          record.date.includes("Jul 2026"),
+        );
+
+      case "last3Months":
+        return attendanceRecords.filter((record) =>
+          ["Aug 2026", "Jul 2026", "Jun 2026"].some((month) =>
+            record.date.includes(month),
+          ),
+        );
+
+      case "thisYear":
+        return attendanceRecords.filter((record) =>
+          record.date.includes("2026"),
+        );
+
+      case "all":
+      default:
+        return attendanceRecords;
+    }
+  }, [attendanceRecords, filter]);
+
+  // =====================================================
+  // ATTENDANCE STATISTICS
+  // =====================================================
+
+  const totalSessions = attendanceRecords.length;
+
+  const presentCount = attendanceRecords.filter(
+    (record) => record.status === "Present",
+  ).length;
+
+  const absentCount = attendanceRecords.filter(
+    (record) => record.status === "Absent",
+  ).length;
+
+  const lateCount = attendanceRecords.filter(
+    (record) => record.status === "Late",
+  ).length;
+
+  const attendanceRate =
+    totalSessions === 0 ? 0 : Math.round((presentCount / totalSessions) * 100);
+
+  // =====================================================
+  // FILTER LABEL
+  // =====================================================
+
+  const getFilterLabel = () => {
+    switch (filter) {
+      case "thisMonth":
+        return "This Month";
+
+      case "lastMonth":
+        return "Last Month";
+
+      case "last3Months":
+        return "Last 3 Months";
+
+      case "thisYear":
+        return "This Year";
+
+      case "all":
+        return "All Time";
+
+      default:
+        return "This Month";
+    }
+  };
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="mt-5 space-y-5">
-      {/* Page Header */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Attendance
-        </h2>
+      {/* =================================================
+          PAGE HEADER
+      ================================================= */}
 
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          View and track attendance records for this child.
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Attendance
+          </h2>
+
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            View and track attendance records for this child.
+          </p>
+        </div>
+
+        {/* Record Attendance Button */}
+
+        <button
+          type="button"
+          onClick={() => setShowModal(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+        >
+          <Plus size={17} />
+          Record Attendance
+        </button>
       </div>
 
-      {/* Summary Cards */}
+      {/* =================================================
+          SUMMARY CARDS
+      ================================================= */}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* Attendance Rate */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -64,7 +217,11 @@ const Attendance = () => {
               </p>
 
               <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                85%
+                {attendanceRate}%
+              </p>
+
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                {presentCount} of {totalSessions} sessions
               </p>
             </div>
 
@@ -78,6 +235,7 @@ const Attendance = () => {
         </div>
 
         {/* Present */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -86,7 +244,11 @@ const Attendance = () => {
               </p>
 
               <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                17
+                {presentCount}
+              </p>
+
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                Sessions attended
               </p>
             </div>
 
@@ -100,6 +262,7 @@ const Attendance = () => {
         </div>
 
         {/* Absent */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -108,7 +271,11 @@ const Attendance = () => {
               </p>
 
               <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                2
+                {absentCount}
+              </p>
+
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                Sessions missed
               </p>
             </div>
 
@@ -119,6 +286,7 @@ const Attendance = () => {
         </div>
 
         {/* Late */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -127,7 +295,11 @@ const Attendance = () => {
               </p>
 
               <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                1
+                {lateCount}
+              </p>
+
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                Late arrivals
               </p>
             </div>
 
@@ -141,10 +313,14 @@ const Attendance = () => {
         </div>
       </div>
 
-      {/* Attendance History */}
+      {/* =================================================
+          ATTENDANCE HISTORY
+      ================================================= */}
+
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700">
+
+        <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
               <CalendarDays
@@ -165,80 +341,43 @@ const Attendance = () => {
           </div>
 
           {/* Filter */}
-          <button
-            type="button"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+
+          <select
+            value={filter}
+            onChange={(event) =>
+              setFilter(event.target.value as AttendanceFilter)
+            }
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 outline-none transition focus:border-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
           >
-            This Month
-          </button>
+            <option value="thisMonth">This Month</option>
+
+            <option value="lastMonth">Last Month</option>
+
+            <option value="last3Months">Last 3 Months</option>
+
+            <option value="thisYear">This Year</option>
+
+            <option value="all">All Time</option>
+          </select>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-162.5 text-left">
-            <thead className="border-b border-gray-100 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40">
-              <tr>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Date
-                </th>
+        {/* =================================================
+            ATTENDANCE TABLE
+        ================================================= */}
 
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Program
-                </th>
-
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Time
-                </th>
-
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Status
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {attendanceRecords.map((record, index) => (
-                <tr
-                  key={`${record.date}-${index}`}
-                  className="border-b border-gray-100 last:border-b-0 dark:border-gray-700"
-                >
-                  <td className="px-5 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                    {record.date}
-                  </td>
-
-                  <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                    {record.program}
-                  </td>
-
-                  <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                    {record.time}
-                  </td>
-
-                  <td className="px-5 py-4">
-                    {record.status === "Present" && (
-                      <span className="inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                        Present
-                      </span>
-                    )}
-
-                    {record.status === "Absent" && (
-                      <span className="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 dark:bg-red-900/30 dark:text-red-400">
-                        Absent
-                      </span>
-                    )}
-
-                    {record.status === "Late" && (
-                      <span className="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
-                        Late
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AttendanceTable records={filteredRecords} />
       </div>
+
+      {/* =================================================
+          RECORD ATTENDANCE MODAL
+      ================================================= */}
+
+      {showModal && (
+        <RecordAttendanceModal
+          onClose={() => setShowModal(false)}
+          onSave={handleAddAttendance}
+        />
+      )}
     </div>
   );
 };

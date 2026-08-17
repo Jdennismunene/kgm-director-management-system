@@ -1,15 +1,18 @@
-import {
-  Activity,
-  CalendarDays,
-  CheckCircle2,
-  FileText,
-  History as HistoryIcon,
-  UserRound,
-} from "lucide-react";
+import { Activity, CalendarDays, History as HistoryIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+
+import HistoryList from "./HistoryList";
+import HistoryDetailsModal from "./HistoryDetailsModal";
+import type { HistoryItem } from "./HistoryList";
 
 const History = () => {
-  const historyItems = [
+  // =====================================================
+  // HISTORY DATA
+  // =====================================================
+
+  const [historyItems] = useState<HistoryItem[]>([
     {
+      id: 1,
       title: "Payment Recorded",
       description: "Sunday School Term 3 payment was recorded.",
       date: "Aug 9, 2026",
@@ -18,6 +21,7 @@ const History = () => {
       type: "payment",
     },
     {
+      id: 2,
       title: "Lesson Completed",
       description: "Brian completed the lesson 'Knowing God'.",
       date: "Aug 9, 2026",
@@ -26,6 +30,7 @@ const History = () => {
       type: "lesson",
     },
     {
+      id: 3,
       title: "Note Added",
       description: "A new observation was added to the child's record.",
       date: "Aug 9, 2026",
@@ -34,6 +39,7 @@ const History = () => {
       type: "note",
     },
     {
+      id: 4,
       title: "Attendance Recorded",
       description: "Child was marked present for Sunday School.",
       date: "Aug 9, 2026",
@@ -42,6 +48,7 @@ const History = () => {
       type: "attendance",
     },
     {
+      id: 5,
       title: "Document Uploaded",
       description: "School report was uploaded to the child's documents.",
       date: "Jul 20, 2026",
@@ -50,6 +57,7 @@ const History = () => {
       type: "document",
     },
     {
+      id: 6,
       title: "Child Profile Updated",
       description: "Child's class information was updated.",
       date: "Jul 15, 2026",
@@ -57,36 +65,76 @@ const History = () => {
       user: "Sarah Wanjiku",
       type: "profile",
     },
-  ];
+    {
+      id: 7,
+      title: "Discipleship Track Updated",
+      description: "Child's discipleship progress was updated.",
+      date: "Jul 10, 2026",
+      time: "03:25 PM",
+      user: "David Kamau",
+      type: "discipleship",
+    },
+  ]);
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "payment":
-        return CheckCircle2;
+  // =====================================================
+  // STATE
+  // =====================================================
 
-      case "lesson":
-        return Activity;
+  const [selectedItem, setSelectedItem] = useState<HistoryItem | null>(null);
 
-      case "note":
-        return FileText;
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-      case "attendance":
-        return CalendarDays;
+  const [filter, setFilter] = useState<"all" | HistoryItem["type"]>("all");
 
-      case "document":
-        return FileText;
+  // =====================================================
+  // FILTER HISTORY
+  // =====================================================
 
-      case "profile":
-        return UserRound;
-
-      default:
-        return HistoryIcon;
+  const filteredHistory = useMemo(() => {
+    if (filter === "all") {
+      return historyItems;
     }
+
+    return historyItems.filter((item) => item.type === filter);
+  }, [historyItems, filter]);
+
+  // =====================================================
+  // SUMMARY
+  // =====================================================
+
+  const totalActivities = historyItems.length;
+
+  const thisMonth = historyItems.filter((item) =>
+    item.date.includes("Aug 2026"),
+  ).length;
+
+  const lastActivity =
+    historyItems.length > 0 ? historyItems[0].date : "No activity";
+
+  // =====================================================
+  // OPEN DETAILS
+  // =====================================================
+
+  const handleViewDetails = (item: HistoryItem) => {
+    setSelectedItem(item);
+    setIsDetailsOpen(true);
+  };
+
+  // =====================================================
+  // CLOSE DETAILS
+  // =====================================================
+
+  const handleCloseDetails = () => {
+    setIsDetailsOpen(false);
+    setSelectedItem(null);
   };
 
   return (
     <div className="mt-5 space-y-5">
-      {/* Header */}
+      {/* =================================================
+          HEADER
+      ================================================= */}
+
       <div>
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           History
@@ -98,9 +146,13 @@ const History = () => {
         </p>
       </div>
 
-      {/* Summary Cards */}
+      {/* =================================================
+          SUMMARY CARDS
+      ================================================= */}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {/* Total Activities */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -109,7 +161,7 @@ const History = () => {
               </p>
 
               <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                48
+                {totalActivities}
               </p>
             </div>
 
@@ -123,6 +175,7 @@ const History = () => {
         </div>
 
         {/* This Month */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -131,7 +184,7 @@ const History = () => {
               </p>
 
               <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                12
+                {thisMonth}
               </p>
             </div>
 
@@ -145,6 +198,7 @@ const History = () => {
         </div>
 
         {/* Last Activity */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -153,7 +207,7 @@ const History = () => {
               </p>
 
               <p className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
-                Aug 9, 2026
+                {lastActivity}
               </p>
             </div>
 
@@ -167,10 +221,14 @@ const History = () => {
         </div>
       </div>
 
-      {/* Activity History */}
+      {/* =================================================
+          ACTIVITY HISTORY
+      ================================================= */}
+
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700">
+        {/* Section Header */}
+
+        <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
               <HistoryIcon
@@ -190,87 +248,52 @@ const History = () => {
             </div>
           </div>
 
-          <button
-            type="button"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          {/* Filter */}
+
+          <select
+            value={filter}
+            onChange={(e) =>
+              setFilter(e.target.value as "all" | HistoryItem["type"])
+            }
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 outline-none transition focus:border-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
           >
-            Filter
-          </button>
+            <option value="all">All Activities</option>
+
+            <option value="payment">Payments</option>
+
+            <option value="lesson">Lessons</option>
+
+            <option value="note">Notes</option>
+
+            <option value="attendance">Attendance</option>
+
+            <option value="document">Documents</option>
+
+            <option value="profile">Profile</option>
+
+            <option value="discipleship">Discipleship</option>
+          </select>
         </div>
 
-        {/* Timeline */}
-        <div className="p-5">
-          <div className="relative">
-            {/* Vertical Line */}
-            <div className="absolute bottom-0 left-5 top-0 w-px bg-gray-200 dark:bg-gray-700" />
+        {/* =================================================
+            HISTORY LIST
+        ================================================= */}
 
-            <div className="space-y-7">
-              {historyItems.map((item, index) => {
-                const Icon = getIcon(item.type);
-
-                return (
-                  <div
-                    key={`${item.title}-${index}`}
-                    className="relative flex gap-4"
-                  >
-                    {/* Icon */}
-                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-4 border-white bg-blue-50 dark:border-gray-800 dark:bg-blue-900/30">
-                      <Icon
-                        size={16}
-                        className="text-blue-600 dark:text-blue-400"
-                      />
-                    </div>
-
-                    {/* Activity */}
-                    <div className="min-w-0 flex-1 rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/30">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                            {item.title}
-                          </h4>
-
-                          <p className="mt-1 text-sm leading-5 text-gray-600 dark:text-gray-300">
-                            {item.description}
-                          </p>
-                        </div>
-
-                        <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500">
-                          {item.time}
-                        </span>
-                      </div>
-
-                      {/* Metadata */}
-                      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                        <div className="flex items-center gap-1.5">
-                          <UserRound
-                            size={13}
-                            className="text-gray-400 dark:text-gray-500"
-                          />
-
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {item.user}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <CalendarDays
-                            size={13}
-                            className="text-gray-400 dark:text-gray-500"
-                          />
-
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {item.date}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        <HistoryList
+          historyItems={filteredHistory}
+          onView={handleViewDetails}
+        />
       </div>
+
+      {/* =================================================
+          DETAILS MODAL
+      ================================================= */}
+
+      <HistoryDetailsModal
+        isOpen={isDetailsOpen}
+        item={selectedItem}
+        onClose={handleCloseDetails}
+      />
     </div>
   );
 };

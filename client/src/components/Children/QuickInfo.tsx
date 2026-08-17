@@ -1,6 +1,11 @@
 import { CalendarDays, CircleCheck, Clock3, Info } from "lucide-react";
+import type { QuickInfo as QuickInfoType } from "../../data/quickInfo";
 
-const QuickInfo = () => {
+interface QuickInfoProps {
+  info: QuickInfoType;
+}
+
+const QuickInfo = ({ info }: QuickInfoProps) => {
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
       {/* Header */}
@@ -30,7 +35,7 @@ const QuickInfo = () => {
           </div>
 
           <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
-            CHD-2024-0012
+            {info.membershipNumber}
           </span>
         </div>
 
@@ -44,8 +49,14 @@ const QuickInfo = () => {
             </span>
           </div>
 
-          <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-600 dark:bg-green-900/30 dark:text-green-400">
-            Active
+          <span
+            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+              info.status === "Active"
+                ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+            }`}
+          >
+            {info.status}
           </span>
         </div>
 
@@ -63,7 +74,7 @@ const QuickInfo = () => {
           </div>
 
           <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
-            May 12, 2024
+            {info.dateAdded}
           </span>
         </div>
 
@@ -78,7 +89,7 @@ const QuickInfo = () => {
           </div>
 
           <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
-            May 15, 2024
+            {info.lastUpdated}
           </span>
         </div>
       </div>

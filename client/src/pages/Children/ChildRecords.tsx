@@ -43,6 +43,11 @@ import {
   type HealthInformation as HealthInformationType,
 } from "../../data/healthInformation";
 
+import {
+  quickInfoData,
+  type QuickInfo as QuickInfoType,
+} from "../../data/quickInfo";
+
 const ChildRecords = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Overview");
@@ -64,6 +69,8 @@ const ChildRecords = () => {
   const [healthInfo, setHealthInfo] = useState<HealthInformationType>(
     healthInformationData,
   );
+  const [quickInfo, setQuickInfo] =
+  useState<QuickInfoType>(quickInfoData);
 
   // Search term
   const [searchTerm, setSearchTerm] = useState("");
@@ -199,7 +206,7 @@ const ChildRecords = () => {
 
           {/* Right Column */}
           <div>
-            <QuickInfo />
+            <QuickInfo info={quickInfoData} />
 
             <RecentActivity />
 

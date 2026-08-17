@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import {
   CheckCircle2,
   Clock3,
@@ -7,13 +8,30 @@ import {
   Wallet,
 } from "lucide-react";
 
+import AddPaymentModal from "./AddPaymentModal";
+import EditPaymentModal from "./EditPaymentModal";
+import PaymentHistory from "./PaymentHistory";
+
+export interface Payment {
+  reference: string;
+  description: string;
+  date: string;
+  amount: number;
+  method: "M-Pesa" | "Cash" | "Bank";
+  status: "Paid" | "Pending";
+}
+
 const Payments = () => {
-  const payments = [
+  // =====================================================
+  // PAYMENT DATA
+  // =====================================================
+
+  const [payments, setPayments] = useState<Payment[]>([
     {
       reference: "PAY-2026-081",
       description: "Sunday School Term 3",
       date: "Aug 9, 2026",
-      amount: "KES 2,500",
+      amount: 2500,
       method: "M-Pesa",
       status: "Paid",
     },
@@ -21,7 +39,7 @@ const Payments = () => {
       reference: "PAY-2026-067",
       description: "Children's Activity",
       date: "Jul 26, 2026",
-      amount: "KES 1,000",
+      amount: 1000,
       method: "M-Pesa",
       status: "Paid",
     },
@@ -29,7 +47,7 @@ const Payments = () => {
       reference: "PAY-2026-052",
       description: "Sunday School Term 2",
       date: "Jun 7, 2026",
-      amount: "KES 2,500",
+      amount: 2500,
       method: "Cash",
       status: "Paid",
     },
@@ -37,261 +55,388 @@ const Payments = () => {
       reference: "PAY-2026-041",
       description: "Children's Retreat",
       date: "May 18, 2026",
-      amount: "KES 3,000",
+      amount: 3000,
       method: "Bank",
       status: "Pending",
     },
-  ];
+  ]);
+
+  // =====================================================
+  // MODAL STATE
+  // =====================================================
+
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const [editingPayment, setEditingPayment] =
+    useState<Payment | null>(null);
+
+  // =====================================================
+  // FILTER
+  // =====================================================
+
+  const [filter, setFilter] = useState<
+    "All" | "Paid" | "Pending"
+  >("All");
+
+  // =====================================================
+  // PAYMENT CALCULATIONS
+  // =====================================================
+
+  const totalPaid = useMemo(() => {
+    return payments
+      .filter((payment) => payment.status === "Paid")
+      .reduce(
+        (total, payment) => total + payment.amount,
+        0
+      );
+  }, [payments]);
+
+  const paymentsMade = useMemo(() => {
+    return payments.filter(
+      (payment) => payment.status === "Paid"
+    ).length;
+  }, [payments]);
+
+  const pendingPayments = useMemo(() => {
+    return payments.filter(
+      (payment) => payment.status === "Pending"
+    ).length;
+  }, [payments]);
+
+  // =====================================================
+  // TOTAL EXPECTED
+  // =====================================================
+
+  // Temporary dummy value.
+  // Later this can come from the database.
+  const totalExpected = 9000;
+
+  const outstandingBalance = Math.max(
+    totalExpected - totalPaid,
+    0
+  );
+
+  const paymentProgress = Math.min(
+    Math.round(
+      (totalPaid / totalExpected) * 100
+    ),
+    100
+  );
+
+  // =====================================================
+  // ADD PAYMENT
+  // =====================================================
+
+  const generateReference = () => {
+    const number = payments.length + 82;
+
+    return `PAY-2026-${String(number).padStart(
+      3,
+      "0"
+    )}`;
+  };
+
+  const handleAddPayment = (newPayment: Payment) => {
+    setPayments((currentPayments) => [
+      newPayment,
+      ...currentPayments,
+    ]);
+
+    setShowAddModal(false);
+  };
+
+  // =====================================================
+  // EDIT PAYMENT
+  // =====================================================
+
+  const handleOpenEdit = (payment: Payment) => {
+    setEditingPayment(payment);
+    setShowEditModal(true);
+  };
+
+  const handleEditPayment = (
+    updatedPayment: Payment
+  ) => {
+    setPayments((currentPayments) =>
+      currentPayments.map((payment) =>
+        payment.reference === updatedPayment.reference
+          ? updatedPayment
+          : payment
+      )
+    );
+
+    setEditingPayment(null);
+    setShowEditModal(false);
+  };
+
+  // =====================================================
+  // DELETE PAYMENT
+  // =====================================================
+
+  const handleDeletePayment = (
+    reference: string
+  ) => {
+    const payment = payments.find(
+      (item) => item.reference === reference
+    );
+
+    if (!payment) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete payment "${payment.reference}"?`
+    );
+
+    if (!confirmed) return;
+
+    setPayments((currentPayments) =>
+      currentPayments.filter(
+        (item) => item.reference !== reference
+      )
+    );
+  };
+
+  // =====================================================
+  // FILTER PAYMENTS
+  // =====================================================
+
+  const filteredPayments = payments.filter(
+    (payment) => {
+      if (filter === "All") return true;
+
+      return payment.status === filter;
+    }
+  );
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
-    <div className="mt-5 space-y-5">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Payments
-          </h2>
+    <>
+      <div className="mt-5 space-y-5">
+        {/* =================================================
+            HEADER
+        ================================================= */}
 
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            View and manage payment records associated with this child.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-        >
-          <CreditCard size={17} />
-          Record Payment
-        </button>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {/* Total Paid */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                Total Paid
-              </p>
-
-              <p className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
-                KES 6,000
-              </p>
-            </div>
-
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
-              <DollarSign
-                size={20}
-                className="text-green-600 dark:text-green-400"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Payments */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                Payments Made
-              </p>
-
-              <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                3
-              </p>
-            </div>
-
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-              <Receipt size={20} className="text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Pending */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                Pending
-              </p>
-
-              <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                1
-              </p>
-            </div>
-
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-900/30">
-              <Clock3
-                size={20}
-                className="text-yellow-600 dark:text-yellow-400"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Balance */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                Outstanding Balance
-              </p>
-
-              <p className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
-                KES 3,000
-              </p>
-            </div>
-
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/30">
-              <Wallet size={20} className="text-red-600 dark:text-red-400" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Payment Status */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Current Payment Status
-            </h3>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Payments
+            </h2>
 
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Current financial standing for this child.
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              View and manage payment records associated
+              with this child.
             </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <CheckCircle2
-              size={18}
-              className="text-green-600 dark:text-green-400"
-            />
-
-            <span className="text-sm font-medium text-green-600 dark:text-green-400">
-              Account Active
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-5 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
-          <div
-            className="h-full rounded-full bg-green-600 dark:bg-green-500"
-            style={{ width: "67%" }}
-          />
-        </div>
-
-        <div className="mt-2 flex justify-between text-xs text-gray-500 dark:text-gray-400">
-          <span>Paid: KES 6,000</span>
-          <span>Total: KES 9,000</span>
-        </div>
-      </div>
-
-      {/* Payment History */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        {/* Table Header */}
-        <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-              <Receipt size={17} className="text-blue-600 dark:text-blue-400" />
-            </div>
-
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Payment History
-              </h3>
-
-              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                Recent transactions and payment records
-              </p>
-            </div>
           </div>
 
           <button
             type="button"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
           >
-            All Payments
+            <CreditCard size={17} />
+            Record Payment
           </button>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-162.5 text-left">
-            <thead className="border-b border-gray-100 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40">
-              <tr>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Reference
-                </th>
+        {/* =================================================
+            SUMMARY CARDS
+        ================================================= */}
 
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Description
-                </th>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {/* Total Paid */}
 
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Date
-                </th>
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  Total Paid
+                </p>
 
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Amount
-                </th>
+                <p className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
+                  KES {totalPaid.toLocaleString()}
+                </p>
+              </div>
 
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Method
-                </th>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
+                <DollarSign
+                  size={20}
+                  className="text-green-600 dark:text-green-400"
+                />
+              </div>
+            </div>
+          </div>
 
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                  Status
-                </th>
-              </tr>
-            </thead>
+          {/* Payments Made */}
 
-            <tbody>
-              {payments.map((payment) => (
-                <tr
-                  key={payment.reference}
-                  className="border-b border-gray-100 last:border-b-0 dark:border-gray-700"
-                >
-                  <td className="px-5 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                    {payment.reference}
-                  </td>
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  Payments Made
+                </p>
 
-                  <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                    {payment.description}
-                  </td>
+                <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
+                  {paymentsMade}
+                </p>
+              </div>
 
-                  <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                    {payment.date}
-                  </td>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                <Receipt
+                  size={20}
+                  className="text-blue-600 dark:text-blue-400"
+                />
+              </div>
+            </div>
+          </div>
 
-                  <td className="px-5 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                    {payment.amount}
-                  </td>
+          {/* Pending */}
 
-                  <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                    {payment.method}
-                  </td>
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  Pending
+                </p>
 
-                  <td className="px-5 py-4">
-                    {payment.status === "Paid" ? (
-                      <span className="inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                        Paid
-                      </span>
-                    ) : (
-                      <span className="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
-                        Pending
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
+                  {pendingPayments}
+                </p>
+              </div>
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-900/30">
+                <Clock3
+                  size={20}
+                  className="text-yellow-600 dark:text-yellow-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Outstanding Balance */}
+
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  Outstanding Balance
+                </p>
+
+                <p className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
+                  KES {outstandingBalance.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/30">
+                <Wallet
+                  size={20}
+                  className="text-red-600 dark:text-red-400"
+                />
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* =================================================
+            PAYMENT STATUS
+        ================================================= */}
+
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                Current Payment Status
+              </h3>
+
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Current financial standing for this child.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {outstandingBalance === 0 ? (
+                <>
+                  <CheckCircle2
+                    size={18}
+                    className="text-green-600 dark:text-green-400"
+                  />
+
+                  <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                    Fully Paid
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Clock3
+                    size={18}
+                    className="text-yellow-600 dark:text-yellow-400"
+                  />
+
+                  <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                    Payment Pending
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+            <div
+              className="h-full rounded-full bg-green-600 transition-all dark:bg-green-500"
+              style={{
+                width: `${paymentProgress}%`,
+              }}
+            />
+          </div>
+
+          <div className="mt-2 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+            <span>
+              Paid: KES {totalPaid.toLocaleString()}
+            </span>
+
+            <span>
+              Total: KES {totalExpected.toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        {/* =================================================
+            PAYMENT HISTORY
+        ================================================= */}
+
+        <PaymentHistory
+          payments={filteredPayments}
+          filter={filter}
+          onFilterChange={setFilter}
+          onEdit={handleOpenEdit}
+          onDelete={handleDeletePayment}
+        />
       </div>
-    </div>
+
+      {/* =================================================
+          MODALS
+      ================================================= */}
+
+      <AddPaymentModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddPayment}
+        generateReference={generateReference}
+      />
+
+      <EditPaymentModal
+        isOpen={showEditModal}
+        payment={editingPayment}
+        onClose={() => {
+          setEditingPayment(null);
+          setShowEditModal(false);
+        }}
+        onSave={handleEditPayment}
+      />
+    </>
   );
 };
 

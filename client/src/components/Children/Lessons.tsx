@@ -3,69 +3,197 @@ import {
   CheckCircle2,
   Clock3,
   GraduationCap,
-  PlayCircle,
+  Plus,
 } from "lucide-react";
+import { useMemo, useState } from "react";
+
+import LessonTable from "./LessonTable";
+import RecordLessonModal, { type LessonRecord } from "./RecordLessonModal";
+
+type LessonFilter =
+  | "all"
+  | "thisMonth"
+  | "lastMonth"
+  | "last3Months"
+  | "thisYear";
 
 const Lessons = () => {
-  const lessons = [
+  // =====================================================
+  // LESSON RECORDS
+  // =====================================================
+
+  const [lessons, setLessons] = useState<LessonRecord[]>([
     {
+      id: 1,
       title: "Knowing God",
       category: "Bible Study",
       date: "Aug 9, 2026",
       progress: 100,
       status: "Completed",
       score: "92%",
+      teacher: "David Kamau",
     },
     {
+      id: 2,
       title: "The Life of Jesus",
       category: "Bible Study",
       date: "Aug 2, 2026",
       progress: 100,
       status: "Completed",
       score: "88%",
+      teacher: "Sarah Wanjiku",
     },
     {
+      id: 3,
       title: "Prayer and Faith",
       category: "Discipleship",
       date: "Jul 26, 2026",
       progress: 75,
       status: "In Progress",
       score: "-",
+      teacher: "David Kamau",
     },
     {
+      id: 4,
       title: "Christian Character",
       category: "Discipleship",
       date: "Jul 19, 2026",
       progress: 50,
       status: "In Progress",
       score: "-",
+      teacher: "Sarah Wanjiku",
     },
     {
+      id: 5,
       title: "Serving Others",
       category: "Christian Living",
       date: "Jul 12, 2026",
       progress: 100,
       status: "Completed",
       score: "95%",
+      teacher: "Mary Njeri",
     },
-  ];
+  ]);
+
+  // =====================================================
+  // STATE
+  // =====================================================
+
+  const [showModal, setShowModal] = useState(false);
+
+  const [filter, setFilter] = useState<LessonFilter>("thisMonth");
+
+  // =====================================================
+  // ADD LESSON
+  // =====================================================
+
+  const handleAddLesson = (lesson: Omit<LessonRecord, "id">) => {
+    const newLesson: LessonRecord = {
+      id: Date.now(),
+      ...lesson,
+    };
+
+    setLessons((previousLessons) => [newLesson, ...previousLessons]);
+
+    setShowModal(false);
+  };
+
+  // =====================================================
+  // FILTER LESSONS
+  // =====================================================
+
+  const filteredLessons = useMemo(() => {
+    switch (filter) {
+      case "thisMonth":
+        return lessons.filter((lesson) => lesson.date.includes("Aug 2026"));
+
+      case "lastMonth":
+        return lessons.filter((lesson) => lesson.date.includes("Jul 2026"));
+
+      case "last3Months":
+        return lessons.filter((lesson) =>
+          ["Aug 2026", "Jul 2026", "Jun 2026"].some((month) =>
+            lesson.date.includes(month),
+          ),
+        );
+
+      case "thisYear":
+        return lessons.filter((lesson) => lesson.date.includes("2026"));
+
+      case "all":
+      default:
+        return lessons;
+    }
+  }, [lessons, filter]);
+
+  // =====================================================
+  // SUMMARY STATISTICS
+  // =====================================================
+
+  const totalLessons = lessons.length;
+
+  const completedLessons = lessons.filter(
+    (lesson) => lesson.status === "Completed",
+  ).length;
+
+  const inProgressLessons = lessons.filter(
+    (lesson) => lesson.status === "In Progress",
+  ).length;
+
+  // Only completed lessons with an actual score
+  const scoredLessons = lessons.filter(
+    (lesson) => lesson.status === "Completed" && lesson.score !== "-",
+  );
+
+  const averageScore =
+    scoredLessons.length === 0
+      ? 0
+      : Math.round(
+          scoredLessons.reduce((total, lesson) => {
+            return total + Number(lesson.score.replace("%", ""));
+          }, 0) / scoredLessons.length,
+        );
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="mt-5 space-y-5">
-      {/* Page Header */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Lessons
-        </h2>
+      {/* =================================================
+          PAGE HEADER
+      ================================================= */}
 
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Track lessons, learning progress, and completed activities.
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Lessons
+          </h2>
+
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Track lessons, learning progress, and completed activities.
+          </p>
+        </div>
+
+        {/* Record Lesson */}
+
+        <button
+          type="button"
+          onClick={() => setShowModal(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+        >
+          <Plus size={17} />
+          Record Lesson
+        </button>
       </div>
 
-      {/* Summary Cards */}
+      {/* =================================================
+          SUMMARY CARDS
+      ================================================= */}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* Total Lessons */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -74,7 +202,11 @@ const Lessons = () => {
               </p>
 
               <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                24
+                {totalLessons}
+              </p>
+
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                All recorded lessons
               </p>
             </div>
 
@@ -88,6 +220,7 @@ const Lessons = () => {
         </div>
 
         {/* Completed */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -96,7 +229,11 @@ const Lessons = () => {
               </p>
 
               <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                18
+                {completedLessons}
+              </p>
+
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                Lessons completed
               </p>
             </div>
 
@@ -110,6 +247,7 @@ const Lessons = () => {
         </div>
 
         {/* In Progress */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -118,7 +256,11 @@ const Lessons = () => {
               </p>
 
               <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                4
+                {inProgressLessons}
+              </p>
+
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                Lessons underway
               </p>
             </div>
 
@@ -132,6 +274,7 @@ const Lessons = () => {
         </div>
 
         {/* Average Score */}
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -140,7 +283,11 @@ const Lessons = () => {
               </p>
 
               <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-                91%
+                {averageScore}%
+              </p>
+
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                Completed lessons
               </p>
             </div>
 
@@ -154,10 +301,14 @@ const Lessons = () => {
         </div>
       </div>
 
-      {/* Lesson History */}
+      {/* =================================================
+          LESSON HISTORY
+      ================================================= */}
+
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700">
+
+        <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
               <BookOpen
@@ -177,85 +328,42 @@ const Lessons = () => {
             </div>
           </div>
 
-          <button
-            type="button"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          {/* Filter */}
+
+          <select
+            value={filter}
+            onChange={(event) => setFilter(event.target.value as LessonFilter)}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 outline-none transition focus:border-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
           >
-            All Lessons
-          </button>
+            <option value="thisMonth">This Month</option>
+
+            <option value="lastMonth">Last Month</option>
+
+            <option value="last3Months">Last 3 Months</option>
+
+            <option value="thisYear">This Year</option>
+
+            <option value="all">All Lessons</option>
+          </select>
         </div>
 
-        {/* Lessons */}
-        <div className="divide-y divide-gray-100 dark:divide-gray-700">
-          {lessons.map((lesson, index) => (
-            <div
-              key={`${lesson.title}-${index}`}
-              className="p-5 transition hover:bg-gray-50 dark:hover:bg-gray-700/30"
-            >
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                {/* Lesson Information */}
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                    <PlayCircle
-                      size={20}
-                      className="text-blue-600 dark:text-blue-400"
-                    />
-                  </div>
+        {/* =================================================
+            LESSON TABLE
+        ================================================= */}
 
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                      {lesson.title}
-                    </h4>
-
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                      <span>{lesson.category}</span>
-                      <span>•</span>
-                      <span>{lesson.date}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress */}
-                <div className="w-full lg:max-w-xs">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Progress
-                    </span>
-
-                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">
-                      {lesson.progress}%
-                    </span>
-                  </div>
-
-                  <div className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
-                    <div
-                      className="h-full rounded-full bg-blue-600 transition-all dark:bg-blue-500"
-                      style={{ width: `${lesson.progress}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Status + Score */}
-                <div className="flex items-center gap-4">
-                  {lesson.status === "Completed" ? (
-                    <span className="inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                      Completed
-                    </span>
-                  ) : (
-                    <span className="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
-                      In Progress
-                    </span>
-                  )}
-
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">
-                    {lesson.score}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <LessonTable lessons={filteredLessons} />
       </div>
+
+      {/* =================================================
+          RECORD LESSON MODAL
+      ================================================= */}
+
+      {showModal && (
+        <RecordLessonModal
+          onClose={() => setShowModal(false)}
+          onSave={handleAddLesson}
+        />
+      )}
     </div>
   );
 };
