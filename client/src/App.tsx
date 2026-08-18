@@ -9,6 +9,10 @@ import Dashboard from "./pages/Dashboard";
 import AllChildren from "./pages/Children/AllChildren";
 import AddChild from "./pages/Children/AddChild";
 import ChildRecords from "./pages/Children/ChildRecords";
+import AllTeachers from "./pages/Teachers/AllTeachers";
+import AddTeacher from "./pages/Teachers/AddTeacher";
+import TeacherRecords from "./pages/Teachers/TeacherRecords";
+import { TeachersProvider } from "./context/TeachersContext";
 
 const App = () => {
   // =========================================
@@ -40,6 +44,7 @@ const App = () => {
   }, [darkMode]);
 
   return (
+    <TeachersProvider>
     <BrowserRouter>
       {/* =====================================
           MAIN APPLICATION
@@ -294,32 +299,11 @@ const App = () => {
 
               <Route path="/children/records" element={<ChildRecords />} />
 
-              <Route
-                path="/teachers"
-                element={
-                  <div className="p-6 text-gray-800 dark:text-white">
-                    Teachers
-                  </div>
-                }
-              />
+              <Route path="/teachers" element={<AllTeachers />} />
 
-              <Route
-                path="/teachers/add"
-                element={
-                  <div className="p-6 text-gray-800 dark:text-white">
-                    Add Teacher
-                  </div>
-                }
-              />
+              <Route path="/teachers/add" element={<AddTeacher />}/>
 
-              <Route
-                path="/teachers/records"
-                element={
-                  <div className="p-6 text-gray-800 dark:text-white">
-                    Teacher Records
-                  </div>
-                }
-              />
+              <Route path="/teachers/:id" element={<TeacherRecords />} />
 
               <Route
                 path="/classes"
@@ -678,6 +662,7 @@ const App = () => {
         </main>
       </div>
     </BrowserRouter>
+    </TeachersProvider>
   );
 };
 

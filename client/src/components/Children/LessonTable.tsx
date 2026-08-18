@@ -116,7 +116,7 @@ const LessonTable = ({ lessons }: LessonTableProps) => {
                 </span>
               )}
 
-              <div className="min-w-[45px] text-right">
+              <div className="min-w-11.25 text-right">
                 {lesson.score !== "-" ? (
                   <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">
                     {lesson.score}

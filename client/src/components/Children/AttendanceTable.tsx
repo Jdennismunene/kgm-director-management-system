@@ -38,7 +38,7 @@ const AttendanceTable = ({ records }: AttendanceTableProps) => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[650px] text-left">
+      <table className="w-full min-w-162.5 text-left">
         {/* =================================================
             TABLE HEADER
         ================================================= */}
