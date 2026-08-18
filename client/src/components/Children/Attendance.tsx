@@ -147,28 +147,6 @@ const Attendance = () => {
   // FILTER LABEL
   // =====================================================
 
-  const getFilterLabel = () => {
-    switch (filter) {
-      case "thisMonth":
-        return "This Month";
-
-      case "lastMonth":
-        return "Last Month";
-
-      case "last3Months":
-        return "Last 3 Months";
-
-      case "thisYear":
-        return "This Year";
-
-      case "all":
-        return "All Time";
-
-      default:
-        return "This Month";
-    }
-  };
-
   // =====================================================
   // RENDER
   // =====================================================

@@ -44,8 +44,7 @@ import {
 } from "../../data/healthInformation";
 
 import {
-  quickInfoData,
-  type QuickInfo as QuickInfoType,
+  quickInfoData
 } from "../../data/quickInfo";
 
 const ChildRecords = () => {
@@ -69,8 +68,6 @@ const ChildRecords = () => {
   const [healthInfo, setHealthInfo] = useState<HealthInformationType>(
     healthInformationData,
   );
-  const [quickInfo, setQuickInfo] =
-  useState<QuickInfoType>(quickInfoData);
 
   // Search term
   const [searchTerm, setSearchTerm] = useState("");

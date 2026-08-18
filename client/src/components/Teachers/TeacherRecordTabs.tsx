@@ -14,7 +14,6 @@ interface TeacherRecordTabsProps {
 }
 
 const TeacherRecordTabs = ({
-  teacher,
   activeTab,
   onTabChange,
 }: TeacherRecordTabsProps) => {
