@@ -1,18 +1,18 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import BibleLessonsPageHeader from "../../components/Ministry/BibleLessons/BibleLessonsPageHeader";
-import BibleLessonsSummaryCards from "../../components/Ministry/BibleLessons/BibleLessonsSummaryCards";
-import BibleLessonsFilterBar from "../../components/Ministry/BibleLessons/BibleLessonsFilterBar";
-import BibleLessonsGrid from "../../components/Ministry/BibleLessons/BibleLessonsGrid";
-import BibleLessonsPagination from "../../components/Ministry/BibleLessons/BibleLessonsPagination";
-import AddBibleLessonModal from "../../components/Ministry/BibleLessons/AddBibleLessonModal";
-import EditBibleLessonModal from "../../components/Ministry/BibleLessons/EditBibleLessonModal";
-import DeleteBibleLessonModal from "../../components/Ministry/BibleLessons/DeleteBibleLessonModal";
+import BibleLessonsPageHeader from "../../../components/Ministry/BibleLessons/BibleLessonsPageHeader";
+import BibleLessonsSummaryCards from "../../../components/Ministry/BibleLessons/BibleLessonsSummaryCards";
+import BibleLessonsFilterBar from "../../../components/Ministry/BibleLessons/BibleLessonsFilterBar";
+import BibleLessonsGrid from "../../../components/Ministry/BibleLessons/BibleLessonsGrid";
+import BibleLessonsPagination from "../../../components/Ministry/BibleLessons/BibleLessonsPagination";
+import AddBibleLessonModal from "../../../components/Ministry/BibleLessons/AddBibleLessonModal";
+import EditBibleLessonModal from "../../../components/Ministry/BibleLessons/EditBibleLessonModal";
+import DeleteBibleLessonModal from "../../../components/Ministry/BibleLessons/DeleteBibleLessonModal";
 
 import {
   bibleLessonsData,
   type BibleLesson,
-} from "../../data/bibleLessonsData";
+} from "../../../data/bibleLessonsData";
 
 const BibleLessons = () => {
   const navigate = useNavigate();

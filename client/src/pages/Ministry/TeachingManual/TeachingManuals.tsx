@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ManualsPageHeader from "../../components/Ministry/Manuals/ManualsPageHeader";
-import ManualsSummaryCards from "../../components/Ministry/Manuals/ManualsSummaryCards";
-import ManualsFilterBar from "../../components/Ministry/Manuals/ManualsFilterBar";
-import ManualsGrid from "../../components/Ministry/Manuals/ManualsGrid";
-import ManualsPagination from "../../components/Ministry/Manuals/ManualsPagination";
-import AddManualModal from "../../components/Ministry/Manuals/AddManualModal";
-import EditManualModal from "../../components/Ministry/Manuals/EditManualModal";
-import DeleteManualModal from "../../components/Ministry/Manuals/DeleteManualModal";
+import ManualsPageHeader from "../../../components/Ministry/Manuals/ManualsPageHeader";
+import ManualsSummaryCards from "../../../components/Ministry/Manuals/ManualsSummaryCards";
+import ManualsFilterBar from "../../../components/Ministry/Manuals/ManualsFilterBar";
+import ManualsGrid from "../../../components/Ministry/Manuals/ManualsGrid";
+import ManualsPagination from "../../../components/Ministry/Manuals/ManualsPagination";
+import AddManualModal from "../../../components/Ministry/Manuals/AddManualModal";
+import EditManualModal from "../../../components/Ministry/Manuals/EditManualModal";
+import DeleteManualModal from "../../../components/Ministry/Manuals/DeleteManualModal";
 
 import {
   teachingManualsData,
   type TeachingManual,
-} from "../../data/teachingManualsData";
+} from "../../../data/teachingManualsData";
 
 const TeachingManuals = () => {
   const navigate = useNavigate();

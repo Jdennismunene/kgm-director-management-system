@@ -21,10 +21,12 @@ import AttendancePage from "./pages/Attendance/AttendancePage";
 import { AttendanceProvider } from "./context/AttendanceContext";
 import AllParents from "./pages/Parents/AllParents";
 import ParentRecords from "./pages/Parents/ParentRecords";
-import TeachingManuals from "./pages/Ministry/TeachingManuals";
-import ManualRecords from "./pages/Ministry/ManualRecords";
-import BibleLessons from "./pages/Ministry/BibleLessons";
-import BibleLessonRecords from "./pages/Ministry/BibleLessonRecords";
+import TeachingManuals from "./pages/Ministry/TeachingManual/TeachingManuals";
+import ManualRecords from "./pages/Ministry/TeachingManual/ManualRecords";
+import BibleLessons from "./pages/Ministry/TeachingManual/BibleLessons";
+import BibleLessonRecords from "./pages/Ministry/TeachingManual/BibleLessonRecords";
+import Library from "./pages/Ministry/Resources/Library";
+import LibraryRecords from "./pages/Ministry/Resources/LibraryRecords";
 
 const App = () => {
   // =========================================
@@ -335,14 +337,8 @@ const App = () => {
                     <Route path="/ministry/manuals/:id" element={<ManualRecords />}/>
                     <Route path="/ministry/lessons/bible" element={<BibleLessons />}/>
                     <Route path="/ministry/lessons/bible/:id" element={<BibleLessonRecords />}/>
-                    <Route
-                      path="/resources"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Resources / Library
-                        </div>
-                      }
-                    />
+                    <Route path="/resources/library" element={<Library />}/>
+                    <Route path="/resources/library-records/:id" element={<LibraryRecords />} />
                     <Route
                       path="/resources/documents"
                       element={

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import {Home,Users,UserRound,BookOpen,CalendarCheck,Heart,BookMarked,FolderOpen,CalendarDays,Droplets,GraduationCap,HandCoins,MessageCircle,Megaphone,BarChart3,Settings,ChevronRight,ChevronDown,ChevronLeft,Menu,X,FileText,Camera,Phone,Mail,MessageSquare,} from "lucide-react";
+import {Home,Users,UserRound,BookOpen,CalendarCheck,Heart,BookMarked,FolderOpen,CalendarDays,Droplets,GraduationCap,HandCoins,MessageCircle,Megaphone,BarChart3,Settings,ChevronRight,ChevronDown,ChevronLeft,Menu,X,FileText,Camera,Phone,Mail,MessageSquare, LibraryBig,} from "lucide-react";
 import logo from '../assets/logo-kgm.png'
 
 interface SidebarProps {
@@ -579,9 +579,15 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
             <SubMenu>
 
               <SubLink
-                to="/resources"
+                to="/resources/library"
                 icon={<FolderOpen size={15} />}
                 text="Library"
+              />
+
+              <SubLink
+                to="/resources/library-records/:id"
+                icon={<LibraryBig size={15} />}
+                text="Library Records"
               />
 
               <SubLink
