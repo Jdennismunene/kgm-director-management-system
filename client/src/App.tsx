@@ -21,6 +21,10 @@ import AttendancePage from "./pages/Attendance/AttendancePage";
 import { AttendanceProvider } from "./context/AttendanceContext";
 import AllParents from "./pages/Parents/AllParents";
 import ParentRecords from "./pages/Parents/ParentRecords";
+import TeachingManuals from "./pages/Ministry/TeachingManuals";
+import ManualRecords from "./pages/Ministry/ManualRecords";
+import BibleLessons from "./pages/Ministry/BibleLessons";
+import BibleLessonRecords from "./pages/Ministry/BibleLessonRecords";
 
 const App = () => {
   // =========================================
@@ -327,30 +331,10 @@ const App = () => {
                     {/* =================================
                 MINISTRY
             ================================== */}
-                    <Route
-                      path="/lessons"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Lessons & Manuals
-                        </div>
-                      }
-                    />
-                    <Route
-                      path="/lessons/bible"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Bible Lessons
-                        </div>
-                      }
-                    />
-                    <Route
-                      path="/lessons/plans"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Lesson Plans
-                        </div>
-                      }
-                    />
+                    <Route path="/ministry/manuals" element={<TeachingManuals />}/>
+                    <Route path="/ministry/manuals/:id" element={<ManualRecords />}/>
+                    <Route path="/ministry/lessons/bible" element={<BibleLessons />}/>
+                    <Route path="/ministry/lessons/bible/:id" element={<BibleLessonRecords />}/>
                     <Route
                       path="/resources"
                       element={

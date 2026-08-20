@@ -538,21 +538,27 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
             <SubMenu>
 
               <SubLink
-                to="/lessons"
+                to="/ministry/manuals"
                 icon={<BookOpen size={15} />}
                 text="Teaching Manuals"
               />
 
               <SubLink
-                to="/lessons/bible"
+                to="/ministry/manuals/:id"
+                icon={<FileText size={15} />}
+                text="Manual Records"
+              />
+
+              <SubLink
+                to="/ministry/lessons/bible"
                 icon={<BookMarked size={15} />}
                 text="Bible Lessons"
               />
 
               <SubLink
-                to="/lessons/plans"
+                to="/ministry/lessons/bible/:id"
                 icon={<FileText size={15} />}
-                text="Lesson Plans"
+                text="Bible Lessons Records"
               />
 
             </SubMenu>
