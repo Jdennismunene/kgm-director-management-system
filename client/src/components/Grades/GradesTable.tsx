@@ -13,10 +13,8 @@ interface GradesTableProps {
 
 const GradesTable = ({
   grades,
-  onView,
   onEdit,
   onDelete,
-  onMembers,
 }: GradesTableProps) => {
   const navigate = useNavigate();
 
