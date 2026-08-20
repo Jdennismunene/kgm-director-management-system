@@ -1,61 +1,74 @@
 import { useEffect, useState } from "react";
 import {
   FilePenLine,
+  FileSpreadsheet,
+  FileText,
+  Presentation,
   Upload,
   X,
-  FileText,
-  Film,
-  Image,
-  Music,
 } from "lucide-react";
 
-import type { LibraryResource } from "../../../data/libraryData";
+import type { DocumentResource } from "../../../data/documentsData";
 
-interface EditLibraryResourceModalProps {
+interface EditDocumentModalProps {
   isOpen: boolean;
-  resource: LibraryResource | null;
+  document: DocumentResource | null;
   onClose: () => void;
-  onSave: (resource: LibraryResource) => void;
+  onSave: (document: DocumentResource) => void;
 }
 
-const EditLibraryResourceModal = ({
+const EditDocumentModal = ({
   isOpen,
-  resource,
+  document,
   onClose,
   onSave,
-}: EditLibraryResourceModalProps) => {
+}: EditDocumentModalProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState<LibraryResource["type"]>("Document");
-  const [category, setCategory] =
-    useState<LibraryResource["category"]>("General");
 
-  const [currentFileName, setCurrentFileName] = useState("");
-  const [currentFileSize, setCurrentFileSize] = useState("");
+  const [category, setCategory] =
+    useState<DocumentResource["category"]>("General");
+
+  const [documentType, setDocumentType] =
+    useState<DocumentResource["documentType"]>("PDF");
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const [status, setStatus] = useState<LibraryResource["status"]>("Active");
+  const [fileName, setFileName] = useState("");
+  const [fileSize, setFileSize] = useState("");
+
+  const [status, setStatus] = useState<DocumentResource["status"]>("Active");
+
+  // --------------------------------------------------
+  // Load Document
+  // --------------------------------------------------
 
   useEffect(() => {
-    if (!resource) return;
+    if (!document) return;
 
-    setTitle(resource.title);
-    setDescription(resource.description);
-    setType(resource.type);
-    setCategory(resource.category);
-    setCurrentFileName(resource.fileName);
-    setCurrentFileSize(resource.fileSize);
+    setTitle(document.title);
+    setDescription(document.description);
+    setCategory(document.category);
+    setDocumentType(document.documentType);
+    setFileName(document.fileName);
+    setFileSize(document.fileSize);
+    setStatus(document.status);
+
+    // New file selection should be cleared
     setSelectedFile(null);
-    setStatus(resource.status);
-  }, [resource]);
+  }, [document]);
 
-  if (!isOpen || !resource) return null;
+  if (!isOpen || !document) return null;
+
+  // --------------------------------------------------
+  // File Size
+  // --------------------------------------------------
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
 
     const units = ["Bytes", "KB", "MB", "GB"];
+
     const index = Math.floor(Math.log(bytes) / Math.log(1024));
 
     return `${(bytes / Math.pow(1024, index)).toFixed(
@@ -63,24 +76,35 @@ const EditLibraryResourceModal = ({
     )} ${units[index]}`;
   };
 
+  // --------------------------------------------------
+  // Accepted File Types
+  // --------------------------------------------------
+
   const getAcceptedFileTypes = () => {
-    switch (type) {
-      case "Document":
-        return ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt";
+    switch (documentType) {
+      case "PDF":
+        return ".pdf";
 
-      case "Video":
-        return ".mp4,.mov,.avi,.mkv,.webm";
+      case "Word":
+        return ".doc,.docx";
 
-      case "Photo":
-        return ".jpg,.jpeg,.png,.webp,.gif";
+      case "Excel":
+        return ".xls,.xlsx";
 
-      case "Audio":
-        return ".mp3,.wav,.m4a,.aac,.ogg";
+      case "PowerPoint":
+        return ".ppt,.pptx";
+
+      case "Text":
+        return ".txt";
 
       default:
         return undefined;
     }
   };
+
+  // --------------------------------------------------
+  // File Change
+  // --------------------------------------------------
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -88,81 +112,102 @@ const EditLibraryResourceModal = ({
     if (!file) return;
 
     setSelectedFile(file);
+
+    setFileName(file.name);
+    setFileSize(formatFileSize(file.size));
   };
 
-  const handleTypeChange = (value: LibraryResource["type"]) => {
-    setType(value);
+  // --------------------------------------------------
+  // Type Change
+  // --------------------------------------------------
+
+  const handleTypeChange = (value: DocumentResource["documentType"]) => {
+    setDocumentType(value);
+
+    // Existing file should not automatically be
+    // considered valid for a different document type.
     setSelectedFile(null);
   };
 
-  const getFileIcon = () => {
-    if (!selectedFile) {
-      switch (type) {
-        case "Document":
+  // --------------------------------------------------
+  // Icon
+  // --------------------------------------------------
+
+  const getDocumentIcon = () => {
+    if (selectedFile) {
+      switch (documentType) {
+        case "PDF":
           return <FileText size={22} />;
 
-        case "Video":
-          return <Film size={22} />;
+        case "Word":
+          return <FileText size={22} />;
 
-        case "Photo":
-          return <Image size={22} />;
+        case "Excel":
+          return <FileSpreadsheet size={22} />;
 
-        case "Audio":
-          return <Music size={22} />;
+        case "PowerPoint":
+          return <Presentation size={22} />;
+
+        case "Text":
+          return <FileText size={22} />;
 
         default:
           return <Upload size={22} />;
       }
     }
 
-    switch (type) {
-      case "Document":
+    switch (documentType) {
+      case "PDF":
         return <FileText size={22} />;
 
-      case "Video":
-        return <Film size={22} />;
+      case "Word":
+        return <FileText size={22} />;
 
-      case "Photo":
-        return <Image size={22} />;
+      case "Excel":
+        return <FileSpreadsheet size={22} />;
 
-      case "Audio":
-        return <Music size={22} />;
+      case "PowerPoint":
+        return <Presentation size={22} />;
+
+      case "Text":
+        return <FileText size={22} />;
 
       default:
         return <Upload size={22} />;
     }
   };
 
+  // --------------------------------------------------
+  // Submit
+  // --------------------------------------------------
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title.trim() || !description.trim()) {
+    if (!title.trim() || !description.trim() || !fileName.trim()) {
       return;
     }
 
-    const updatedResource: LibraryResource = {
-      ...resource,
+    const updatedDocument: DocumentResource = {
+      ...document,
+
       title: title.trim(),
+
       description: description.trim(),
-      type,
+
       category,
-      fileName: selectedFile ? selectedFile.name : currentFileName,
-      fileSize: selectedFile
-        ? formatFileSize(selectedFile.size)
-        : currentFileSize || "N/A",
+
+      documentType,
+
+      fileName: fileName.trim(),
+
+      fileSize: fileSize.trim() || "N/A",
+
       status,
     };
 
-    onSave(updatedResource);
-
-    setSelectedFile(null);
+    onSave(updatedDocument);
   };
-
-  const displayedFileName = selectedFile ? selectedFile.name : currentFileName;
-
-  const displayedFileSize = selectedFile
-    ? formatFileSize(selectedFile.size)
-    : currentFileSize;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
@@ -176,11 +221,11 @@ const EditLibraryResourceModal = ({
 
             <div>
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                Edit Library Resource
+                Edit Document
               </h2>
 
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Update the resource information.
+                Update the document information.
               </p>
             </div>
           </div>
@@ -194,19 +239,20 @@ const EditLibraryResourceModal = ({
           </button>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit}>
           <div className="max-h-[70vh] space-y-5 overflow-y-auto px-6 py-5">
             {/* Title */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Resource Title
+                Document Title
               </label>
 
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Vocational Bible School 2026"
+                placeholder="e.g. VBS 2026 Programme"
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 required
               />
@@ -221,35 +267,16 @@ const EditLibraryResourceModal = ({
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe this resource..."
+                placeholder="Describe this document..."
                 rows={3}
                 className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 required
               />
             </div>
 
-            {/* Type + Category */}
+            {/* Category + Type */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Resource Type
-                </label>
-
-                <select
-                  value={type}
-                  onChange={(e) =>
-                    handleTypeChange(e.target.value as LibraryResource["type"])
-                  }
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                >
-                  <option value="Document">Document</option>
-                  <option value="Video">Video</option>
-                  <option value="Photo">Photo</option>
-                  <option value="Audio">Audio</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
+              {/* Category */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Category
@@ -258,24 +285,60 @@ const EditLibraryResourceModal = ({
                 <select
                   value={category}
                   onChange={(e) =>
-                    setCategory(e.target.value as LibraryResource["category"])
+                    setCategory(e.target.value as DocumentResource["category"])
                   }
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
                 >
                   <option value="Photography">Photography</option>
+
                   <option value="VBS">VBS</option>
+
                   <option value="Competition">Competition</option>
+
                   <option value="Baptism">Baptism</option>
+
                   <option value="Teaching">Teaching</option>
+
+                  <option value="Administration">Administration</option>
+
+                  <option value="Reports">Reports</option>
+
                   <option value="General">General</option>
+                </select>
+              </div>
+
+              {/* Type */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Document Type
+                </label>
+
+                <select
+                  value={documentType}
+                  onChange={(e) =>
+                    handleTypeChange(
+                      e.target.value as DocumentResource["documentType"],
+                    )
+                  }
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                >
+                  <option value="PDF">PDF</option>
+
+                  <option value="Word">Word</option>
+
+                  <option value="Excel">Excel</option>
+
+                  <option value="PowerPoint">PowerPoint</option>
+
+                  <option value="Text">Text</option>
                 </select>
               </div>
             </div>
 
-            {/* File Upload */}
+            {/* Current / Replacement File */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Resource File
+                Document File
               </label>
 
               <label className="block cursor-pointer">
@@ -288,7 +351,7 @@ const EditLibraryResourceModal = ({
 
                 <div className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 px-5 py-7 text-center transition hover:border-teal-400 hover:bg-teal-50/50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-teal-600 dark:hover:bg-teal-900/10">
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400">
-                    {getFileIcon()}
+                    {getDocumentIcon()}
                   </div>
 
                   {selectedFile ? (
@@ -308,11 +371,11 @@ const EditLibraryResourceModal = ({
                   ) : (
                     <>
                       <p className="mt-3 truncate px-4 text-sm font-semibold text-gray-900 dark:text-white">
-                        {displayedFileName}
+                        {fileName}
                       </p>
 
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        {displayedFileSize}
+                        {fileSize}
                       </p>
 
                       <p className="mt-2 text-xs font-medium text-teal-600 dark:text-teal-400">
@@ -322,24 +385,6 @@ const EditLibraryResourceModal = ({
                   )}
                 </div>
               </label>
-
-              {!selectedFile && (
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Leave the existing file unchanged or click above to upload a
-                  replacement.
-                </p>
-              )}
-
-              {selectedFile === null && type !== "Other" && (
-                <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                  Accepted:{" "}
-                  {type === "Document" &&
-                    "PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX or TXT"}
-                  {type === "Video" && "MP4, MOV, AVI, MKV or WEBM"}
-                  {type === "Photo" && "JPG, JPEG, PNG, WEBP or GIF"}
-                  {type === "Audio" && "MP3, WAV, M4A, AAC or OGG"}
-                </p>
-              )}
             </div>
 
             {/* Status */}
@@ -351,11 +396,12 @@ const EditLibraryResourceModal = ({
               <select
                 value={status}
                 onChange={(e) =>
-                  setStatus(e.target.value as LibraryResource["status"])
+                  setStatus(e.target.value as DocumentResource["status"])
                 }
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
               >
                 <option value="Active">Active</option>
+
                 <option value="Archived">Archived</option>
               </select>
             </div>
@@ -373,8 +419,7 @@ const EditLibraryResourceModal = ({
 
             <button
               type="submit"
-              disabled={!title.trim() || !description.trim()}
-              className="rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700"
             >
               Save Changes
             </button>
@@ -385,4 +430,4 @@ const EditLibraryResourceModal = ({
   );
 };
 
-export default EditLibraryResourceModal;
+export default EditDocumentModal;

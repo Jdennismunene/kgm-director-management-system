@@ -11,6 +11,7 @@ import {
   Tag,
   Trash2,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -18,13 +19,48 @@ import {
   type LibraryResource,
 } from "../../../data/libraryData";
 
+import EditLibraryResourceModal from "../../../components/Ministry/Library/EditLibraryResourceModal";
+import DeleteLibraryResourceModal from "../../../components/Ministry/Library/DeleteLibraryResourceModal";
+
 const LibraryRecords = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const resource: LibraryResource | undefined = libraryData.find(
-    (item) => item.id === Number(id),
-  );
+  // --------------------------------------------------
+  // Resource
+  // --------------------------------------------------
+
+  const [resource, setResource] = useState<LibraryResource | null>(null);
+
+  // --------------------------------------------------
+  // Modals
+  // --------------------------------------------------
+
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // --------------------------------------------------
+  // Success Notification
+  // --------------------------------------------------
+
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // --------------------------------------------------
+  // Load Resource
+  // --------------------------------------------------
+
+  useEffect(() => {
+    const foundResource = libraryData.find(
+      (item) => item.id === Number(id),
+    );
+
+    setResource(foundResource ?? null);
+  }, [id]);
+
+  // --------------------------------------------------
+  // Resource Icon
+  // --------------------------------------------------
 
   const getResourceIcon = (type: LibraryResource["type"]) => {
     switch (type) {
@@ -45,7 +81,66 @@ const LibraryRecords = () => {
     }
   };
 
-  // Resource not found
+  // --------------------------------------------------
+  // Edit
+  // --------------------------------------------------
+
+  const handleEdit = () => {
+    setShowEditModal(true);
+  };
+
+  // --------------------------------------------------
+  // Save Edited Resource
+  // --------------------------------------------------
+
+  const handleUpdateResource = (
+    updatedResource: LibraryResource,
+  ) => {
+    setResource(updatedResource);
+
+    setShowEditModal(false);
+
+    setSuccessMessage(
+      `"${updatedResource.title}" has been updated successfully.`,
+    );
+
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+  };
+
+  // --------------------------------------------------
+  // Delete
+  // --------------------------------------------------
+
+  const handleDelete = () => {
+    setShowDeleteModal(true);
+  };
+
+  // --------------------------------------------------
+  // Confirm Delete
+  // --------------------------------------------------
+
+  const handleConfirmDelete = () => {
+    if (!resource) return;
+
+    const deletedTitle = resource.title;
+
+    setShowDeleteModal(false);
+
+    setSuccessMessage(
+      `"${deletedTitle}" has been deleted successfully.`,
+    );
+
+    setTimeout(() => {
+      navigate("/resources/library");
+    }, 700);
+  };
+
+  // --------------------------------------------------
+  // Resource Not Found
+  // --------------------------------------------------
+
   if (!resource) {
     return (
       <div className="mx-4 mt-3 pb-3">
@@ -78,8 +173,44 @@ const LibraryRecords = () => {
   const ResourceIcon = getResourceIcon(resource.type);
 
   return (
-    <div className="mx-4 mt-3 space-y-6 pb-3">
+    <div className="relative mx-4 mt-3 space-y-6 pb-3">
+      {/* -------------------------------------------------- */}
+      {/* Success Notification */}
+      {/* -------------------------------------------------- */}
+
+      {successMessage && (
+        <div className="fixed right-6 top-6 z-60 flex w-90 items-start gap-3 rounded-xl border border-green-200 bg-white px-4 py-3 shadow-lg dark:border-green-900/50 dark:bg-gray-800">
+          {/* Icon */}
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+            ✓
+          </div>
+
+          {/* Message */}
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+              Success
+            </p>
+
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+              {successMessage}
+            </p>
+          </div>
+
+          {/* Close */}
+          <button
+            type="button"
+            onClick={() => setSuccessMessage("")}
+            className="text-lg leading-none text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* -------------------------------------------------- */}
       {/* Back */}
+      {/* -------------------------------------------------- */}
+
       <button
         type="button"
         onClick={() => navigate("/resources/library")}
@@ -89,7 +220,10 @@ const LibraryRecords = () => {
         Back to Library
       </button>
 
+      {/* -------------------------------------------------- */}
       {/* Header */}
+      {/* -------------------------------------------------- */}
+
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
@@ -131,6 +265,7 @@ const LibraryRecords = () => {
             {/* Edit */}
             <button
               type="button"
+              onClick={handleEdit}
               className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <Pencil size={16} />
@@ -140,6 +275,7 @@ const LibraryRecords = () => {
             {/* Delete */}
             <button
               type="button"
+              onClick={handleDelete}
               className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-900/20"
             >
               <Trash2 size={16} />
@@ -149,7 +285,10 @@ const LibraryRecords = () => {
         </div>
       </div>
 
+      {/* -------------------------------------------------- */}
       {/* Overview Cards */}
+      {/* -------------------------------------------------- */}
+
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {/* Resource Type */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -228,7 +367,10 @@ const LibraryRecords = () => {
         </div>
       </div>
 
+      {/* -------------------------------------------------- */}
       {/* Main Content */}
+      {/* -------------------------------------------------- */}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Description */}
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:col-span-2 dark:border-gray-700 dark:bg-gray-800">
@@ -284,7 +426,10 @@ const LibraryRecords = () => {
               </p>
 
               <div className="mt-1 flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
-                <CalendarDays size={15} className="text-gray-400" />
+                <CalendarDays
+                  size={15}
+                  className="text-gray-400"
+                />
                 {resource.dateAdded}
               </div>
             </div>
@@ -292,7 +437,10 @@ const LibraryRecords = () => {
         </div>
       </div>
 
+      {/* -------------------------------------------------- */}
       {/* Resource Preview */}
+      {/* -------------------------------------------------- */}
+
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">
           Resource Preview
@@ -319,6 +467,28 @@ const LibraryRecords = () => {
           </p>
         </div>
       </div>
+
+      {/* -------------------------------------------------- */}
+      {/* Edit Resource Modal */}
+      {/* -------------------------------------------------- */}
+
+      <EditLibraryResourceModal
+        isOpen={showEditModal}
+        resource={resource}
+        onClose={() => setShowEditModal(false)}
+        onSave={handleUpdateResource}
+      />
+
+      {/* -------------------------------------------------- */}
+      {/* Delete Resource Modal */}
+      {/* -------------------------------------------------- */}
+
+      <DeleteLibraryResourceModal
+        isOpen={showDeleteModal}
+        resource={resource}
+        onClose={() => setShowDeleteModal(false)}
+        onDelete={handleConfirmDelete}
+      />
     </div>
   );
 };

@@ -27,6 +27,9 @@ import BibleLessons from "./pages/Ministry/TeachingManual/BibleLessons";
 import BibleLessonRecords from "./pages/Ministry/TeachingManual/BibleLessonRecords";
 import Library from "./pages/Ministry/Resources/Library";
 import LibraryRecords from "./pages/Ministry/Resources/LibraryRecords";
+import Documents from "./pages/Ministry/Documents/Documents";
+import Photos from "./pages/Ministry/Photos/Photos";
+import Archives from "./pages/Ministry/Archives/Archives";
 
 const App = () => {
   // =========================================
@@ -339,30 +342,10 @@ const App = () => {
                     <Route path="/ministry/lessons/bible/:id" element={<BibleLessonRecords />}/>
                     <Route path="/resources/library" element={<Library />}/>
                     <Route path="/resources/library-records/:id" element={<LibraryRecords />} />
+                    <Route path="/resources/documents" element={<Documents />} />
+                    <Route path="/resources/photos" element={<Photos />} />
                     <Route
-                      path="/resources/documents"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Documents
-                        </div>
-                      }
-                    />
-                    <Route
-                      path="/resources/photos"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Photos
-                        </div>
-                      }
-                    />
-                    <Route
-                      path="/resources/archives"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Archives
-                        </div>
-                      }
-                    />
+                      path="/resources/archives" element={<Archives />} />
                     <Route
                       path="/programs"
                       element={
