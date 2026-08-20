@@ -1,82 +1,82 @@
-import { useState } from "react";
 import {
-  User,
-  CalendarCheck,
   BookOpen,
-  Star,
-  CreditCard,
+  CalendarCheck,
+  ClipboardList,
   FileText,
-  FolderOpen,
   History,
+  NotebookPen,
+  UserRound,
 } from "lucide-react";
 
 interface ChildRecordTabsProps {
+  activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
-const ChildRecordTabs = ({ onTabChange }: ChildRecordTabsProps) => {
-  const [activeTab, setActiveTab] = useState("Overview");
-
+const ChildRecordTabs = ({ activeTab, onTabChange }: ChildRecordTabsProps) => {
   const tabs = [
     {
-      name: "Overview",
-      icon: User,
+      id: "overview",
+      label: "Overview",
+      icon: UserRound,
     },
     {
-      name: "Attendance",
+      id: "attendance",
+      label: "Attendance",
       icon: CalendarCheck,
     },
     {
-      name: "Lessons",
+      id: "lessons",
+      label: "Lessons",
       icon: BookOpen,
     },
     {
-      name: "Discipleship",
-      icon: Star,
+      id: "discipleship",
+      label: "Discipleship",
+      icon: ClipboardList,
     },
     {
-      name: "Payments",
-      icon: CreditCard,
-    },
-    {
-      name: "Notes",
+      id: "payments",
+      label: "Payments",
       icon: FileText,
     },
     {
-      name: "Documents",
-      icon: FolderOpen,
+      id: "notes",
+      label: "Notes",
+      icon: NotebookPen,
     },
     {
-      name: "History",
+      id: "documents",
+      label: "Documents",
+      icon: FileText,
+    },
+    {
+      id: "history",
+      label: "History",
       icon: History,
     },
   ];
 
-  const handleTabClick = (tabName: string) => {
-    setActiveTab(tabName);
-    onTabChange(tabName);
-  };
-
   return (
-    <div className="mt-5 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-      <div className="flex items-center overflow-x-auto">
+    <div className="mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex min-w-max border-b border-gray-200 px-2 dark:border-gray-700">
         {tabs.map((tab) => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.name;
+          const isActive = activeTab === tab.id;
 
           return (
             <button
-              key={tab.name}
+              key={tab.id}
               type="button"
-              onClick={() => handleTabClick(tab.name)}
-              className={`flex items-center gap-2 whitespace-nowrap px-5 py-4 text-sm font-medium cursor-pointer transition ${
+              onClick={() => onTabChange(tab.id)}
+              className={`flex items-center gap-2 border-b-2 px-4 py-3.5 text-sm font-medium transition ${
                 isActive
-                  ? "border-b-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-                  : "border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  ? "border-[#365452] text-[#365452] dark:border-[#8eb0ac] dark:text-[#8eb0ac]"
+                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               }`}
             >
               <Icon size={17} />
-              {tab.name}
+              {tab.label}
             </button>
           );
         })}

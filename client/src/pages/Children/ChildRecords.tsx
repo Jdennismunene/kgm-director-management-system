@@ -1,9 +1,10 @@
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import ChildRecordHeader from "../../components/Children/ChildRecordHeader";
 import ChildRecordTabs from "../../components/Children/ChildRecordTabs";
+
 import PersonalInformation from "../../components/Children/PersonalInformation";
 import ParentInformation from "../../components/Children/ParentInformation";
 import AcademicInformation from "../../components/Children/AcademicInformation";
@@ -11,6 +12,8 @@ import HealthInformation from "../../components/Children/HealthInformation";
 import QuickInfo from "../../components/Children/QuickInfo";
 import RecentActivity from "../../components/Children/RecentActivity";
 import ChildRecordActions from "../../components/Children/ChildRecordActions";
+import ChildProfilePrint from "../../components/Children/ChildProfilePrint";
+
 import Attendance from "../../components/Children/Attendance";
 import Lessons from "../../components/Children/Lessons";
 import Discipleship from "../../components/Children/Discipleship";
@@ -18,8 +21,6 @@ import Payments from "../../components/Children/Payments";
 import Notes from "../../components/Children/Notes";
 import Documents from "../../components/Children/Documents";
 import History from "../../components/Children/History";
-import AddChildModal from "../../components/Children/AddChildModal";
-import ChildProfilePrint from "../../components/Children/ChildProfilePrint";
 
 import { childrenData, type Child } from "../../data/childrenData";
 
@@ -35,7 +36,7 @@ import {
 
 import {
   academicInformationData,
-  type AcademicInformationType as AcademicInformationType,
+  type AcademicInformationType,
 } from "../../data/academicInformation";
 
 import {
@@ -43,152 +44,202 @@ import {
   type HealthInformation as HealthInformationType,
 } from "../../data/healthInformation";
 
-import {
-  quickInfoData
-} from "../../data/quickInfo";
+import { quickInfoData } from "../../data/quickInfo";
 
 const ChildRecords = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("Overview");
-  const [showAddChildModal, setShowAddChildModal] = useState(false);
-  const [children, setChildren] = useState<Child[]>(childrenData);
-  // Selected child
-  const [selectedChild, setSelectedChild] = useState<Child>(childrenData[0]);
-  const [parentInfo, setParentInfo] = useState<ChildParentInfo>(
-    childParentInfoData[childrenData[0].id],
+  const { id } = useParams();
+
+  const [activeTab, setActiveTab] = useState("overview");
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Find child using URL parameter
+  const child = childrenData.find((item) => item.id === Number(id));
+
+  // Personal Information
+  const [personalInfo, setPersonalInfo] = useState<ChildPersonalInfo | null>(
+    child ? childPersonalInfoData[child.id] : null,
   );
 
-  // Personal and Academic Information
-  const [personalInfo, setPersonalInfo] = useState<ChildPersonalInfo>(
-    childPersonalInfoData[childrenData[0].id],
-  );
-  const [academicInfo, setAcademicInfo] = useState<AcademicInformationType>(
-    academicInformationData,
-  );
-  const [healthInfo, setHealthInfo] = useState<HealthInformationType>(
-    healthInformationData,
-  );
+  // Parent Information
+  const [parentInfo, setParentInfo] = useState<ChildParentInfo | null>(
+  child
+    ? childParentInfoData[child.id] ?? {
+        parentName: "Not provided",
+        phone: "Not provided",
+        occupation: "Not provided",
+        relationship: "Not provided",
+        email: "Not provided",
+        address: "Not provided",
+      }
+    : null,
+);
 
-  // Search term
-  const [searchTerm, setSearchTerm] = useState("");
+  // Academic Information
+  const [academicInfo, setAcademicInfo] =
+    useState<AcademicInformationType>(academicInformationData);
 
-  // Search children
-  const filteredChildren = children.filter((child) =>
-    child.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // Health Information
+  const [healthInfo, setHealthInfo] =
+    useState<HealthInformationType>(healthInformationData);
 
-  const handleAcademicInfoUpdate = (updatedInfo: AcademicInformationType) => {
-    setAcademicInfo(updatedInfo);
+  /*
+   * Child Not Found
+   */
+  if (!child) {
+    return (
+      <div className="min-h-full bg-gray-50 p-6 dark:bg-gray-900">
+        {/* Back */}
+        <button
+          type="button"
+          onClick={() => navigate("/children")}
+          className="mb-6 flex items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-[#365452] dark:text-gray-400 dark:hover:text-[#8eb0ac]"
+        >
+          <ArrowLeft size={17} />
+          Back to Children
+        </button>
+
+        {/* Not Found Card */}
+        <div className="flex min-h-100 items-center justify-center rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          <div className="text-center">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Child Not Found
+            </h2>
+
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              The child you're looking for does not exist.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => navigate("/children")}
+              className="mt-5 rounded-lg bg-[#365452] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#2c4543] dark:bg-[#8eb0ac] dark:text-gray-900"
+            >
+              Back to Children
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /*
+   * Tab Change
+   */
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
   };
-  const handleHealthInfoUpdate = (updatedInfo: HealthInformationType) => {
-    setHealthInfo(updatedInfo);
+
+  /*
+   * Success Notification
+   */
+  const showUpdateSuccess = () => {
+    setShowSuccess(true);
+
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 3000);
+  };
+
+  /*
+   * Information Updates
+   */
+  const handlePersonalInfoUpdate = (updatedInfo: ChildPersonalInfo) => {
+    setPersonalInfo(updatedInfo);
+    showUpdateSuccess();
   };
 
   const handleParentInfoUpdate = (updatedInfo: ChildParentInfo) => {
     setParentInfo(updatedInfo);
+    showUpdateSuccess();
   };
 
-  const handlePersonalInfoUpdate = (updatedInfo: ChildPersonalInfo) => {
-    setPersonalInfo(updatedInfo);
+  const handleAcademicInfoUpdate = (
+    updatedInfo: AcademicInformationType,
+  ) => {
+    setAcademicInfo(updatedInfo);
+    showUpdateSuccess();
   };
 
-  const handleAddChild = (newChild: Child) => {
-    setChildren((prevChildren) => [...prevChildren, newChild]);
-
-    setSelectedChild(newChild);
-
-    setShowAddChildModal(false);
+  const handleHealthInfoUpdate = (
+    updatedInfo: HealthInformationType,
+  ) => {
+    setHealthInfo(updatedInfo);
+    showUpdateSuccess();
   };
 
-  const handleUpdateChild = (updatedChild: Child) => {
-    setChildren((prevChildren) =>
-      prevChildren.map((child) =>
-        child.id === updatedChild.id ? updatedChild : child,
-      ),
-    );
-    setSelectedChild(updatedChild);
-  };
-
+  /*
+   * Render
+   */
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-6">
-      {/* Breadcrumb */}
-      <div className="mb-4 flex items-center gap-2 text-sm">
-        <span className="cursor-pointer text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-          Dashboard
-        </span>
+    <div className="relative min-h-full bg-gray-50 p-6 dark:bg-gray-900">
+      {/* Success Notification */}
+      {showSuccess && (
+        <div className="fixed right-6 top-6 z-50 flex items-center gap-3 rounded-lg border border-green-200 bg-white px-4 py-3 shadow-lg dark:border-green-800 dark:bg-gray-800">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+            <CheckCircle2
+              size={18}
+              className="text-green-600 dark:text-green-400"
+            />
+          </div>
 
-        <span className="text-gray-400 dark:text-gray-600">›</span>
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+              Child Updated
+            </p>
 
-        <span className="cursor-pointer text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-          Children
-        </span>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Child information was successfully updated.
+            </p>
+          </div>
+        </div>
+      )}
 
-        <span className="text-gray-400 dark:text-gray-600">›</span>
-
-        <span className="text-gray-500 dark:text-gray-400">Child Records</span>
+      {/* Back to Children */}
+      <div className="mb-5">
+        <button
+          type="button"
+          onClick={() => navigate("/children")}
+          className="flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-[#365452] dark:text-gray-400 dark:hover:text-[#8eb0ac]"
+        >
+          <ArrowLeft size={17} />
+          Back to Children
+        </button>
       </div>
 
-      {/* Page Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            Child Records
-          </h1>
-
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            View and manage detailed information for each child.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Back Button */}
-          <button
-            type="button"
-            onClick={() => navigate("/children")}
-            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 cursor-pointer"
-          >
-            <ArrowLeft size={18} />
-            Back to All Children
-          </button>
-
-          {/* Add Child Button */}
-          <button
-            type="button"
-            onClick={() => setShowAddChildModal(true)}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 cursor-pointer"
-          >
-            <Plus size={18} />
-            Add Child
-          </button>
-        </div>
-      </div>
-
-      {/* Child Profile Header */}
+      {/* Child Header */}
       <ChildRecordHeader
-        selectedChild={selectedChild}
-        onSelectChild={setSelectedChild}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        filteredChildren={filteredChildren}
+        selectedChild={child}
+        onSelectChild={() => {}}
+        searchTerm=""
+        onSearchChange={() => {}}
+        filteredChildren={[child]}
       />
 
-      {/* Child Record Tabs */}
-      <ChildRecordTabs onTabChange={setActiveTab} />
+      {/* Child Tabs */}
+      <ChildRecordTabs
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
 
-      {/* Overview Content */}
-      {activeTab === "Overview" && (
+      {/* ================= OVERVIEW ================= */}
+      {activeTab === "overview" && (
         <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,2.2fr)_minmax(300px,1fr)]">
           {/* Left Column */}
           <div>
-            <PersonalInformation
-              info={personalInfo}
-              onUpdate={handlePersonalInfoUpdate}
-            />
+            {personalInfo && (
+              <PersonalInformation
+                info={personalInfo}
+                onUpdate={handlePersonalInfoUpdate}
+              />
+            )}
 
-            <ParentInformation
-              info={parentInfo}
-              onUpdate={handleParentInfoUpdate}
-            />
+            {parentInfo && (
+              <ParentInformation
+                info={parentInfo}
+                onUpdate={handleParentInfoUpdate}
+              />
+            )}
 
             <AcademicInformation
               info={academicInfo}
@@ -208,55 +259,38 @@ const ChildRecords = () => {
             <RecentActivity />
 
             <ChildRecordActions
-              child={selectedChild}
-              onUpdateChild={handleUpdateChild}
+              child={child}
+              onUpdateChild={(updatedChild: Child) => {
+                console.log("Child updated:", updatedChild);
+                showUpdateSuccess();
+              }}
             />
 
-            <ChildProfilePrint child={selectedChild} />
+            <ChildProfilePrint child={child} />
           </div>
         </div>
       )}
 
-      {/* Other Tabs */}
-      {activeTab === "Attendance" && <Attendance />}
+      {/* ================= ATTENDANCE ================= */}
+      {activeTab === "attendance" && <Attendance />}
 
-      {activeTab === "Lessons" && <Lessons />}
+      {/* ================= LESSONS ================= */}
+      {activeTab === "lessons" && <Lessons />}
 
-      {activeTab === "Discipleship" && <Discipleship />}
+      {/* ================= DISCIPLESHIP ================= */}
+      {activeTab === "discipleship" && <Discipleship />}
 
-      {activeTab === "Payments" && <Payments />}
+      {/* ================= PAYMENTS ================= */}
+      {activeTab === "payments" && <Payments />}
 
-      {activeTab === "Notes" && <Notes />}
+      {/* ================= NOTES ================= */}
+      {activeTab === "notes" && <Notes />}
 
-      {activeTab === "Documents" && <Documents />}
+      {/* ================= DOCUMENTS ================= */}
+      {activeTab === "documents" && <Documents />}
 
-      {activeTab === "History" && <History />}
-
-      {activeTab !== "Overview" &&
-        activeTab !== "Attendance" &&
-        activeTab !== "Lessons" &&
-        activeTab !== "Discipleship" &&
-        activeTab !== "Payments" &&
-        activeTab !== "Notes" &&
-        activeTab !== "Documents" &&
-        activeTab !== "History" && (
-          <div className="mt-5 rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {activeTab}
-            </h2>
-
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              This section will be built next.
-            </p>
-          </div>
-        )}
-
-      {showAddChildModal && (
-        <AddChildModal
-          onClose={() => setShowAddChildModal(false)}
-          onSave={handleAddChild}
-        />
-      )}
+      {/* ================= HISTORY ================= */}
+      {activeTab === "history" && <History />}
     </div>
   );
 };

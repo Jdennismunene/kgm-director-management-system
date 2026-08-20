@@ -2,16 +2,24 @@ import {
   BookOpen,
   CalendarDays,
   CheckCircle2,
+  Edit,
   GraduationCap,
   Users,
 } from "lucide-react";
+import { useState } from "react";
 import type { Teacher } from "../../data/teachersData";
+import { useTeachers } from "../../context/TeachersContext";
+import EditTeacherTeachingModal from "./EditTeacherTeachingModal";
 
 interface TeacherTeachingProps {
   teacher: Teacher;
 }
 
 const TeacherTeaching = ({ teacher }: TeacherTeachingProps) => {
+  const { updateTeacher } = useTeachers();
+
+  const [showEditModal, setShowEditModal] = useState(false);
+
   const teachingStats = [
     {
       label: "Assigned Grades",
@@ -56,6 +64,11 @@ const TeacherTeaching = ({ teacher }: TeacherTeachingProps) => {
     },
   ];
 
+  const handleUpdateTeacher = (updatedTeacher: Teacher) => {
+    updateTeacher(updatedTeacher);
+    setShowEditModal(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Teaching Summary */}
@@ -95,14 +108,25 @@ const TeacherTeaching = ({ teacher }: TeacherTeachingProps) => {
 
       {/* Assigned Grades */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <div className="border-b border-gray-200 px-6 py-5 dark:border-gray-700">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-            Assigned Grades
-          </h2>
+        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5 dark:border-gray-700">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+              Assigned Grades
+            </h2>
 
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Grades currently assigned to this teacher.
-          </p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Grades currently assigned to this teacher.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowEditModal(true)}
+            className="flex items-center gap-2 rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:text-[#365452] dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-[#8eb0ac]"
+          >
+            <Edit size={16} />
+            Edit
+          </button>
         </div>
 
         <div className="p-6">
@@ -184,6 +208,15 @@ const TeacherTeaching = ({ teacher }: TeacherTeachingProps) => {
           ))}
         </div>
       </div>
+
+      {/* Edit Teaching Modal */}
+      {showEditModal && (
+        <EditTeacherTeachingModal
+          teacher={teacher}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleUpdateTeacher}
+        />
+      )}
     </div>
   );
 };

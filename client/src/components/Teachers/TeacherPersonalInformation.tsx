@@ -1,5 +1,9 @@
-import { Mail, Phone, UserRound } from "lucide-react";
+import { Edit, Mail, Phone, UserRound } from "lucide-react";
+import { useState } from "react";
+
 import type { Teacher } from "../../data/teachersData";
+import { useTeachers } from "../../context/TeachersContext";
+import EditTeacherPersonalInformationModal from "./EditTeacherPersonalInformationModal";
 
 interface TeacherPersonalInformationProps {
   teacher: Teacher;
@@ -8,20 +12,43 @@ interface TeacherPersonalInformationProps {
 const TeacherPersonalInformation = ({
   teacher,
 }: TeacherPersonalInformationProps) => {
+  const { updateTeacher } = useTeachers();
+
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const handleUpdateTeacher = (updatedTeacher: Teacher) => {
+    updateTeacher(updatedTeacher);
+    setShowEditModal(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Personal Information */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <div className="border-b border-gray-200 px-6 py-5 dark:border-gray-700">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-            Personal Information
-          </h2>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5 dark:border-gray-700">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+              Personal Information
+            </h2>
 
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Basic information and contact details for this teacher.
-          </p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Basic information and contact details for this teacher.
+            </p>
+          </div>
+
+          {/* Edit Button */}
+          <button
+            type="button"
+            onClick={() => setShowEditModal(true)}
+            className="flex items-center gap-2 rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:text-[#365452] dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-[#8eb0ac]"
+          >
+            <Edit size={16} />
+            Edit
+          </button>
         </div>
 
+        {/* Information */}
         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
           {/* Full Name */}
           <div className="flex items-start gap-3">
@@ -98,7 +125,7 @@ const TeacherPersonalInformation = ({
         </div>
       </div>
 
-      {/* Account / Employment Information */}
+      {/* Employment Information */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div className="border-b border-gray-200 px-6 py-5 dark:border-gray-700">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
@@ -160,6 +187,15 @@ const TeacherPersonalInformation = ({
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <EditTeacherPersonalInformationModal
+          teacher={teacher}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleUpdateTeacher}
+        />
+      )}
     </div>
   );
 };

@@ -430,32 +430,32 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
           {/* Classes */}
 
           <ExpandableMenu
-            title="Classes"
+            title="Grade"
             icon={<BookOpen size={18} />}
             collapsed={collapsed}
-            open={isMenuOpen("classes")}
-            onClick={() => toggleMenu("classes")}
+            open={isMenuOpen("Grade")}
+            onClick={() => toggleMenu("Grade")}
           />
 
-          {!collapsed && isMenuOpen("classes") && (
+          {!collapsed && isMenuOpen("Grade") && (
             <SubMenu>
 
               <SubLink
-                to="/classes"
+                to="/grade"
                 icon={<BookOpen size={15} />}
-                text="All Classes"
+                text="All Grade"
               />
 
               <SubLink
-                to="/classes/add"
+                to="/grade/add"
                 icon={<BookOpen size={15} />}
-                text="Add Class"
+                text="Add Grade"
               />
 
               <SubLink
-                to="/classes/members"
+                to="/grade/members"
                 icon={<Users size={15} />}
-                text="Class Members"
+                text="Grade Members"
               />
 
             </SubMenu>
@@ -478,20 +478,9 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
               <SubLink
                 to="/attendance"
                 icon={<CalendarCheck size={15} />}
-                text="Take Attendance"
+                text="Attendance Page"
               />
 
-              <SubLink
-                to="/attendance/records"
-                icon={<FileText size={15} />}
-                text="Attendance Records"
-              />
-
-              <SubLink
-                to="/attendance/reports"
-                icon={<BarChart3 size={15} />}
-                text="Attendance Reports"
-              />
 
             </SubMenu>
           )}

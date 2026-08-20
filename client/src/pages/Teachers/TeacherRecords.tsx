@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 
@@ -13,6 +13,8 @@ import { useTeachers } from "../../context/TeachersContext";
 
 const TeacherRecords = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -56,8 +58,34 @@ const TeacherRecords = () => {
     );
   }
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
   return (
-    <div className="min-h-full bg-gray-50 p-6 dark:bg-gray-900">
+    <div className="relative min-h-full bg-gray-50 p-6 dark:bg-gray-900">
+      {/* Success Notification */}
+      {showSuccess && (
+        <div className="fixed right-6 top-6 z-50 flex items-center gap-3 rounded-lg border border-green-200 bg-white px-4 py-3 shadow-lg dark:border-green-800 dark:bg-gray-800">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+            <CheckCircle2
+              size={18}
+              className="text-green-600 dark:text-green-400"
+            />
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+              Teacher Updated
+            </p>
+
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Teacher information was successfully updated.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Breadcrumb / Back */}
       <div className="mb-5">
         <button
@@ -70,13 +98,22 @@ const TeacherRecords = () => {
       </div>
 
       {/* Teacher Header */}
-      <TeacherRecordHeader teacher={teacher} />
+      <TeacherRecordHeader
+        teacher={teacher}
+        onUpdated={() => {
+          setShowSuccess(true);
+
+          setTimeout(() => {
+            setShowSuccess(false);
+          }, 3000);
+        }}
+      />
 
       {/* Teacher Tabs */}
       <TeacherRecordTabs
         teacher={teacher}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
       />
 
       {/* Tab Content */}

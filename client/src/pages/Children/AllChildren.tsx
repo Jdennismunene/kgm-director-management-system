@@ -1,5 +1,5 @@
 import { Plus, ChevronRight, CheckCircle, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ChildrenSummaryCards from "../../components/Children/ChildrenSummaryCards";
 import ChildrenFilterBar from "../../components/Children/ChildrenFilterBar";
 import ChildrenTable from "../../components/Children/ChildrenTable";
@@ -12,6 +12,7 @@ import AddChildModal from "../../components/Children/AddChildModal";
 import { useState } from "react";
 
 const AllChildren = () => {
+  const navigate = useNavigate();
   const [selectedClass, setSelectedClass] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,12 +69,11 @@ const AllChildren = () => {
   );
 
   return (
-     <div className="p-6">
-
-    {/* Success Notification */}
-    {showSuccessNotification && (
-      <div
-        className="
+    <div className="p-6">
+      {/* Success Notification */}
+      {showSuccessNotification && (
+        <div
+          className="
           fixed
           top-20
           right-6
@@ -93,10 +93,10 @@ const AllChildren = () => {
           items-start
           gap-3
         "
-      >
-        {/* Success Icon */}
-        <div
-          className="
+        >
+          {/* Success Icon */}
+          <div
+            className="
             w-10
             h-10
             rounded-full
@@ -107,26 +107,26 @@ const AllChildren = () => {
             justify-center
             shrink-0
           "
-        >
-          <CheckCircle
-            size={21}
-            className="text-green-600 dark:text-green-400"
-          />
-        </div>
+          >
+            <CheckCircle
+              size={21}
+              className="text-green-600 dark:text-green-400"
+            />
+          </div>
 
-        {/* Message */}
-        <div className="flex-1">
-          <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-            Child registered successfully
-          </h3>
+          {/* Message */}
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+              Child registered successfully
+            </h3>
 
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            The child has been added to the Sunday School records.
-          </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              The child has been added to the Sunday School records.
+            </p>
 
-          <Link
-            to="/children"
-            className="
+            <Link
+              to="/children"
+              className="
               inline-flex
               items-center
               gap-1
@@ -138,17 +138,17 @@ const AllChildren = () => {
               hover:text-blue-700
               dark:hover:text-blue-300
             "
-          >
-            View All Children
-            <ChevronRight size={15} />
-          </Link>
-        </div>
+            >
+              View All Children
+              <ChevronRight size={15} />
+            </Link>
+          </div>
 
-        {/* Close Notification */}
-        <button
-          type="button"
-          onClick={() => setShowSuccessNotification(false)}
-          className="
+          {/* Close Notification */}
+          <button
+            type="button"
+            onClick={() => setShowSuccessNotification(false)}
+            className="
             w-7
             h-7
             rounded-lg
@@ -164,11 +164,11 @@ const AllChildren = () => {
             transition
             cursor-pointer
           "
-        >
-          <X size={17} />
-        </button>
-      </div>
-    )}
+          >
+            <X size={17} />
+          </button>
+        </div>
+      )}
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
@@ -305,20 +305,9 @@ const AllChildren = () => {
       {/* Children Table */}
       <ChildrenTable
         children={currentChildren}
-        onViewChild={(child) => setSelectedChild(child)}
+        onViewChild={(child) => navigate(`/children/${child.id}`)}
         onEditChild={(child) => setEditingChild(child)}
-        onDeactivateChild={(child) => {
-          setChildren((currentChildren) =>
-            currentChildren.map((currentChild) =>
-              currentChild.id === child.id
-                ? {
-                    ...currentChild,
-                    status: "Inactive",
-                  }
-                : currentChild,
-            ),
-          );
-        }}
+        onDeactivateChild={(child) => setDeletingChild(child)}
         onDeleteChild={(child) => setDeletingChild(child)}
       />
 

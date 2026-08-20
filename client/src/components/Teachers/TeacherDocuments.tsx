@@ -4,15 +4,26 @@ import {
   FolderOpen,
   MoreVertical,
   Plus,
+  Trash2,
 } from "lucide-react";
+import { useState } from "react";
 import type { Teacher } from "../../data/teachersData";
+import UploadTeacherDocumentModal from "./UploadTeacherDocumentModal";
 
 interface TeacherDocumentsProps {
   teacher: Teacher;
 }
 
+interface TeacherDocument {
+  id: number;
+  name: string;
+  type: string;
+  size: string;
+  date: string;
+}
+
 const TeacherDocuments = ({ teacher }: TeacherDocumentsProps) => {
-  const documents = [
+  const [documents, setDocuments] = useState<TeacherDocument[]>([
     {
       id: 1,
       name: "Employment Contract",
@@ -34,7 +45,41 @@ const TeacherDocuments = ({ teacher }: TeacherDocumentsProps) => {
       size: "320 KB",
       date: "Aug 11, 2026",
     },
-  ];
+  ]);
+
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
+  const handleAddDocument = (document: TeacherDocument) => {
+    setDocuments((current) => [...current, document]);
+    setShowUploadModal(false);
+  };
+
+  const handleDeleteDocument = (id: number) => {
+    setDocuments((current) => current.filter((document) => document.id !== id));
+
+    setOpenMenuId(null);
+  };
+
+  const handleDownload = (document: TeacherDocument) => {
+    const content = `Teacher Document\n\nName: ${document.name}\nType: ${document.type}\nSize: ${document.size}\nUploaded: ${document.date}\nTeacher: ${teacher.name}`;
+
+    const blob = new Blob([content], {
+      type: "text/plain",
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = window.document.createElement("a");
+    link.href = url;
+    link.download = `${document.name}.txt`;
+
+    window.document.body.appendChild(link);
+    link.click();
+    window.document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6">
@@ -53,6 +98,7 @@ const TeacherDocuments = ({ teacher }: TeacherDocumentsProps) => {
 
           <button
             type="button"
+            onClick={() => setShowUploadModal(true)}
             className="flex items-center justify-center gap-2 rounded-lg bg-[#365452] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#2c4543]"
           >
             <Plus size={17} />
@@ -90,10 +136,11 @@ const TeacherDocuments = ({ teacher }: TeacherDocumentsProps) => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1">
+                <div className="relative flex items-center gap-1">
                   <button
                     type="button"
                     title="Download document"
+                    onClick={() => handleDownload(document)}
                     className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-[#365452] dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-[#8eb0ac]"
                   >
                     <Download size={17} />
@@ -102,10 +149,29 @@ const TeacherDocuments = ({ teacher }: TeacherDocumentsProps) => {
                   <button
                     type="button"
                     title="More options"
+                    onClick={() =>
+                      setOpenMenuId(
+                        openMenuId === document.id ? null : document.id,
+                      )
+                    }
                     className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                   >
                     <MoreVertical size={17} />
                   </button>
+
+                  {/* More Options Menu */}
+                  {openMenuId === document.id && (
+                    <div className="absolute right-0 top-10 z-10 w-36 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-600 dark:bg-gray-800">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDocument(document.id)}
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                      >
+                        <Trash2 size={15} />
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))
@@ -139,6 +205,14 @@ const TeacherDocuments = ({ teacher }: TeacherDocumentsProps) => {
           identification documents, and other supporting files here.
         </p>
       </div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <UploadTeacherDocumentModal
+          onClose={() => setShowUploadModal(false)}
+          onSave={handleAddDocument}
+        />
+      )}
     </div>
   );
 };
