@@ -37,6 +37,7 @@ import Calendar from "./pages/Ministry/EventsCalendar/Calendar";
 import UpcomingEvents from "./pages/Ministry/EventsCalendar/UpcomingEvents";
 import PastEvents from "./pages/Ministry/EventsCalendar/PastEvents";
 import BaptismRecords from "./pages/Ministry/BaptismRecords/BaptismRecords";
+import Documentation from "./pages/Ministry/BaptismRecords/Documentation";
 
 const App = () => {
   // =========================================
@@ -378,15 +379,11 @@ const App = () => {
                     <Route path="/events/calendar" element={<Calendar />}/>
                     <Route path="/events/upcoming" element={<UpcomingEvents />} />
                     <Route path="/events/past" element={<PastEvents />} />
+
+                    // BAPTISM & Records
                     <Route path="/baptism" element={<BaptismRecords />} />
-                    <Route
-                      path="/baptism/documents"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Baptism Documentation
-                        </div>
-                      }
-                    />
+                    <Route path="/baptism/documents" element={<Documentation />} />
+
                     {/* =================================
                 DEVELOPMENT
             ================================== */}
