@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useGrades } from "../../context/GradesContext";
 import type { Grade } from "../../data/gradesData";
 
-const AddGrade = () => {
+const AddClass = () => {
   const navigate = useNavigate();
   const { addGrade } = useGrades();
 
@@ -68,11 +68,11 @@ const AddGrade = () => {
           {/* Form Header */}
           <div className="border-b border-gray-200 px-6 py-5 dark:border-gray-700">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-              Grade Information
+              Class Information
             </h2>
 
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Enter the details for the new grade.
+              Enter the details for the new class.
             </p>
           </div>
 
@@ -81,7 +81,7 @@ const AddGrade = () => {
             {/* Grade Name */}
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
-                Grade Name
+                Class Name
               </label>
 
               <input
@@ -174,7 +174,7 @@ const AddGrade = () => {
               className="flex items-center gap-2 rounded-lg bg-[#365452] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#2c4543] dark:bg-[#8eb0ac] dark:text-gray-900 dark:hover:bg-[#789c98]"
             >
               <Save size={17} />
-              Save Grade
+              Save Class
             </button>
           </div>
         </div>
@@ -183,4 +183,4 @@ const AddGrade = () => {
   );
 };
 
-export default AddGrade;
+export default AddClass;

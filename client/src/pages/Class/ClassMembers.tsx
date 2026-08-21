@@ -13,7 +13,7 @@ import DeleteChildModal from "../../components/Children/DeleteChildModal";
 import { useGrades } from "../../context/GradesContext";
 import { childrenData, type Child } from "../../data/childrenData";
 
-const GradeMembers = () => {
+const ClassMembers = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -46,11 +46,11 @@ const GradeMembers = () => {
         {/* Back Button */}
         <button
           type="button"
-          onClick={() => navigate("/grade")}
+          onClick={() => navigate("/class")}
           className="mb-6 flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-[#365452] dark:text-gray-400 dark:hover:text-[#8eb0ac]"
         >
           <ArrowLeft size={17} />
-          Back to All Grades
+          Back to All Classes
         </button>
 
         {/* Empty State */}
@@ -63,23 +63,23 @@ const GradeMembers = () => {
 
             {/* Title */}
             <h2 className="mt-5 text-lg font-semibold text-gray-900 dark:text-white">
-              No Grade Selected
+              No Class Selected
             </h2>
 
             {/* Description */}
             <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
-              Please go back to All Grades and select a grade to view its
+              Please go back to All Classes and select a grade to view its
               members.
             </p>
 
             {/* Action */}
             <button
               type="button"
-              onClick={() => navigate("/grade")}
+              onClick={() => navigate("/class")}
               className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#365452] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#2c4543] dark:bg-[#8eb0ac] dark:text-gray-900 dark:hover:bg-[#9fc0bc]"
             >
               <ArrowLeft size={16} />
-              Go to All Grades
+              Go to All Classes
             </button>
           </div>
         </div>
@@ -155,4 +155,4 @@ const GradeMembers = () => {
   );
 };
 
-export default GradeMembers;
+export default ClassMembers;

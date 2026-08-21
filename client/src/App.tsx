@@ -14,9 +14,6 @@ import AddTeacher from "./pages/Teachers/AddTeacher";
 import TeacherRecords from "./pages/Teachers/TeacherRecords";
 import { TeachersProvider } from "./context/TeachersContext";
 import { GradesProvider } from "./context/GradesContext";
-import AllGrades from "./pages/Grade/AllGrades";
-import AddGrade from "./pages/Grade/AddGrade";
-import GradeMembers from "./pages/Grade/GradeMembers";
 import AttendancePage from "./pages/Attendance/AttendancePage";
 import { AttendanceProvider } from "./context/AttendanceContext";
 import AllParents from "./pages/Parents/AllParents";
@@ -38,6 +35,9 @@ import UpcomingEvents from "./pages/Ministry/EventsCalendar/UpcomingEvents";
 import PastEvents from "./pages/Ministry/EventsCalendar/PastEvents";
 import BaptismRecords from "./pages/Ministry/BaptismRecords/BaptismRecords";
 import Documentation from "./pages/Ministry/BaptismRecords/Documentation";
+import AllClasses from "./pages/Class/AllClass";
+import AddClass from "./pages/Class/AddClass";
+import ClassMembers from "./pages/Class/ClassMembers";
 
 const App = () => {
   // =========================================
@@ -330,10 +330,10 @@ const App = () => {
                     <Route path="/teachers" element={<AllTeachers />} />
                     <Route path="/teachers/add" element={<AddTeacher />} />
                     <Route path="/teachers/:id" element={<TeacherRecords />} />
-                    // Grade
-                    <Route path="/grade" element={<AllGrades />} />
-                    <Route path="/grade/add" element={<AddGrade />} />
-                    <Route path="/grade/:id" element={<GradeMembers />} />
+                    // Class
+                    <Route path="/class" element={<AllClasses />} />
+                    <Route path="/class/add" element={<AddClass />} />
+                    <Route path="/class/:id" element={<ClassMembers />} />
                     // Attendance.
                     <Route path="/attendance" element={<AttendancePage />} />
 

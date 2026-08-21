@@ -430,7 +430,7 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
           {/* Classes */}
 
           <ExpandableMenu
-            title="Grade"
+            title="Classes"
             icon={<BookOpen size={18} />}
             collapsed={collapsed}
             open={isMenuOpen("Grade")}
@@ -441,21 +441,21 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
             <SubMenu>
 
               <SubLink
-                to="/grade"
+                to="/class"
                 icon={<BookOpen size={15} />}
-                text="All Grade"
+                text="All Classes"
               />
 
               <SubLink
-                to="/grade/add"
+                to="/class/add"
                 icon={<BookOpen size={15} />}
-                text="Add Grade"
+                text="Add Class"
               />
 
               <SubLink
-                to="/grade/members"
+                to="/class/members"
                 icon={<Users size={15} />}
-                text="Grade Members"
+                text="Class Members"
               />
 
             </SubMenu>

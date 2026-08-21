@@ -56,11 +56,11 @@ const GradesTable = ({
       {/* Header */}
       <div className="border-b border-gray-200 px-6 py-5 dark:border-gray-700">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-          All Grades
+          All Classes
         </h2>
 
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          View and manage all grades in your church.
+          View and manage all classes in your church.
         </p>
       </div>
 
@@ -72,7 +72,7 @@ const GradesTable = ({
           </div>
 
           <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">
-            No grades found
+            No classes found
           </h3>
 
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -87,7 +87,7 @@ const GradesTable = ({
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/50">
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Grade
+                    Class
                   </th>
 
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -176,7 +176,7 @@ const GradesTable = ({
                         {/* View */}
                         <button
                           type="button"
-                          title="View grade"
+                          title="View class"
                           onClick={() => handleViewGrade(grade)}
                           className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-[#365452] dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-[#8eb0ac]"
                         >
@@ -186,7 +186,7 @@ const GradesTable = ({
                         {/* Edit */}
                         <button
                           type="button"
-                          title="Edit grade"
+                          title="Edit class"
                           onClick={() => onEdit?.(grade)}
                           className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-[#365452] dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-[#8eb0ac]"
                         >
@@ -196,7 +196,7 @@ const GradesTable = ({
                         {/* Delete */}
                         <button
                           type="button"
-                          title="Delete grade"
+                          title="Delete class"
                           onClick={() => onDelete?.(grade)}
                           className="rounded-lg p-2 text-gray-500 transition hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                         >
@@ -225,7 +225,7 @@ const GradesTable = ({
                               className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
                             >
                               <Eye size={16} />
-                              View Grade
+                              View Class
                             </button>
 
                             {/* Edit Grade */}
@@ -237,7 +237,7 @@ const GradesTable = ({
                               className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
                             >
                               <Edit size={16} />
-                              Edit Grade
+                              Edit Class
                             </button>
 
                             {/* View Members */}
@@ -263,7 +263,7 @@ const GradesTable = ({
                               className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                             >
                               <Trash2 size={16} />
-                              Delete Grade
+                              Delete Class
                             </button>
                           </div>
                         )}

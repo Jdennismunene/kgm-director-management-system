@@ -13,7 +13,7 @@ import DeleteGradeModal from "../../components/Grades/DeleteGradeModal";
 import { useGrades } from "../../context/GradesContext";
 import type { Grade } from "../../data/gradesData";
 
-const AllGrades = () => {
+const AllClasses = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -105,7 +105,7 @@ const AllGrades = () => {
       {/* Success Notification */}
       {showSuccess && (
         <div className="mb-5 flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-400">
-          <span>Grade added successfully.</span>
+          <span>Class added successfully.</span>
 
           <button
             type="button"
@@ -118,7 +118,7 @@ const AllGrades = () => {
       )}
 
       {/* Page Header */}
-      <GradesPageHeader onAddGrade={() => navigate("/grade/add")} />
+      <GradesPageHeader onAddClass={() => navigate("/class/add")} />
 
       {/* Summary Cards */}
       <GradesSummaryCards grades={grades} />
@@ -193,4 +193,4 @@ const AllGrades = () => {
   );
 };
 
-export default AllGrades;
+export default AllClasses;
