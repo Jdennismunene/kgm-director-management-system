@@ -661,7 +661,7 @@ const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
             <SubMenu>
 
               <SubLink
-                to="/events"
+                to="/events/calendar"
                 icon={<CalendarDays size={15} />}
                 text="Calendar"
               />

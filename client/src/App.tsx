@@ -30,6 +30,13 @@ import LibraryRecords from "./pages/Ministry/Resources/LibraryRecords";
 import Documents from "./pages/Ministry/Documents/Documents";
 import Photos from "./pages/Ministry/Photos/Photos";
 import Archives from "./pages/Ministry/Archives/Archives";
+import Programs from "./pages/Ministry/Programs/Programs";
+import VocationalBibleStudies from "./pages/Ministry/Programs/VocationalBibleStudies";
+import TeachersSeminars from "./pages/Ministry/Programs/TeachersSeminars";
+import Calendar from "./pages/Ministry/EventsCalendar/Calendar";
+import UpcomingEvents from "./pages/Ministry/EventsCalendar/UpcomingEvents";
+import PastEvents from "./pages/Ministry/EventsCalendar/PastEvents";
+import BaptismRecords from "./pages/Ministry/BaptismRecords/BaptismRecords";
 
 const App = () => {
   // =========================================
@@ -336,72 +343,42 @@ const App = () => {
                     {/* =================================
                 MINISTRY
             ================================== */}
+                     
+                     // Teaching manuals
                     <Route path="/ministry/manuals" element={<TeachingManuals />}/>
                     <Route path="/ministry/manuals/:id" element={<ManualRecords />}/>
+
+                    // Bible lessons
                     <Route path="/ministry/lessons/bible" element={<BibleLessons />}/>
                     <Route path="/ministry/lessons/bible/:id" element={<BibleLessonRecords />}/>
+
+                    // library resources
                     <Route path="/resources/library" element={<Library />}/>
                     <Route path="/resources/library-records/:id" element={<LibraryRecords />} />
+
+                    // documents
                     <Route path="/resources/documents" element={<Documents />} />
+
+                    // photos
                     <Route path="/resources/photos" element={<Photos />} />
-                    <Route
-                      path="/resources/archives" element={<Archives />} />
-                    <Route
-                      path="/programs"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Programs
-                        </div>
-                      }
-                    />
-                    <Route
-                      path="/programs/vbs"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Vocational Bible Studies
-                        </div>
-                      }
-                    />
-                    <Route
-                      path="/programs/seminars"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Teachers Seminars
-                        </div>
-                      }
-                    />
-                    <Route
-                      path="/events"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Events & Calendar
-                        </div>
-                      }
-                    />
-                    <Route
-                      path="/events/upcoming"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Upcoming Events
-                        </div>
-                      }
-                    />
-                    <Route
-                      path="/events/past"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Past Events
-                        </div>
-                      }
-                    />
-                    <Route
-                      path="/baptism"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Baptism Records
-                        </div>
-                      }
-                    />
+
+                    // archives
+                    <Route path="/resources/archives" element={<Archives />} />
+
+                    // programs
+                    <Route path="/programs" element={<Programs />} />
+
+                    // vbs
+                    <Route path="/programs/vbs" element={<VocationalBibleStudies />} />
+
+                    // teachers seminars.
+                    <Route path="/programs/seminars" element={<TeachersSeminars />} />
+
+                    // events & calendar
+                    <Route path="/events/calendar" element={<Calendar />}/>
+                    <Route path="/events/upcoming" element={<UpcomingEvents />} />
+                    <Route path="/events/past" element={<PastEvents />} />
+                    <Route path="/baptism" element={<BaptismRecords />} />
                     <Route
                       path="/baptism/documents"
                       element={
