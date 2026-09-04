@@ -8,13 +8,13 @@ import {
   UserMinus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Child } from "../../data/childrenData";
+import type { Child } from "../../services/childService";
 
 interface GradeMembersTableProps {
   members: Child[];
   gradeName: string;
-  onEditChild?: (child: Child) => void;
-  onRemoveChild?: (child: Child) => void;
+  onEditChild: (child: Child) => void;
+  onRemoveChild: (child: Child) => void;
 }
 
 const GradeMembersTable = ({
@@ -25,17 +25,15 @@ const GradeMembersTable = ({
 }: GradeMembersTableProps) => {
   const navigate = useNavigate();
 
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  // Child IDs from Prisma are strings (cuid)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  const handleMenuToggle = (id: number) => {
+  const handleMenuToggle = (id: string) => {
     setOpenMenuId((current) => (current === id ? null : id));
   };
 
   /*
    * View Child
-   *
-   * Child records route:
-   * /children/:id
    */
   const handleViewChild = (child: Child) => {
     setOpenMenuId(null);
@@ -47,7 +45,7 @@ const GradeMembersTable = ({
    */
   const handleEditChild = (child: Child) => {
     setOpenMenuId(null);
-    onEditChild?.(child);
+    onEditChild(child);
   };
 
   /*
@@ -55,7 +53,7 @@ const GradeMembersTable = ({
    */
   const handleRemoveChild = (child: Child) => {
     setOpenMenuId(null);
-    onRemoveChild?.(child);
+    onRemoveChild(child);
   };
 
   return (
@@ -156,29 +154,29 @@ const GradeMembersTable = ({
 
                   {/* Parent */}
                   <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-200">
-                    {child.parent}
+                    {child.parent?.name ?? "—"}
                   </td>
 
                   {/* Phone */}
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                    {child.phone}
+                    {child.parent?.phone ?? "—"}
                   </td>
 
                   {/* Branch */}
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                    {child.branch}
+                    {child.branch?.name ?? "—"}
                   </td>
 
                   {/* Status */}
                   <td className="px-6 py-4">
                     <span
                       className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                        child.status === "Active"
+                        child.status === "ACTIVE"
                           ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                           : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                       }`}
                     >
-                      {child.status}
+                      {child.status === "ACTIVE" ? "Active" : "Inactive"}
                     </span>
                   </td>
 
