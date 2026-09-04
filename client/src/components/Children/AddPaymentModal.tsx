@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Save, X } from "lucide-react";
-import type { Payment } from "./Payments";
+
+import type { CreatePaymentData, Payment } from "../../services/paymentService";
 
 interface AddPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (payment: Payment) => void;
+  onSave: (payment: CreatePaymentData) => void;
   generateReference: () => string;
 }
 
@@ -51,14 +52,14 @@ const AddPaymentModal = ({
       return;
     }
 
-    const newPayment: Payment = {
+    const newPayment: CreatePaymentData = {
       reference: generateReference(),
       description: description.trim(),
-      date: new Date(date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
+
+      // Keep the native date input format.
+      // Example: 2026-09-03
+      date,
+
       amount: Number(amount),
       method,
       status,

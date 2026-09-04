@@ -7,9 +7,196 @@ import {
   MapPin,
   Save,
   X,
+  Mail,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { createChild, type CreateChildData } from "../../services/childService";
+
+import {
+  createParent,
+  type CreateParentData,
+} from "../../services/parentService";
+
+import { getGrades, type Grade } from "../../services/gradeService";
+
+import { getBranches, type Branch } from "../../services/branchService";
 
 const AddChild = () => {
+  const navigate = useNavigate();
+
+  // =========================
+  // Child form data
+  // =========================
+  const [formData, setFormData] = useState<CreateChildData>({
+    name: "",
+    age: 0,
+    parentId: "",
+    gradeId: "",
+    branchId: "",
+  });
+
+  // =========================
+  // Parent form data
+  // =========================
+  const [parentData, setParentData] = useState<CreateParentData>({
+    name: "",
+    phone: "",
+    email: "",
+  });
+
+  // =========================
+  // Options
+  // =========================
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+
+  // =========================
+  // Loading / errors
+  // =========================
+  const [loading, setLoading] = useState(false);
+  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [error, setError] = useState("");
+
+  // =========================
+  // Load grades and branches
+  // =========================
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        setLoadingOptions(true);
+        setError("");
+
+        const [gradesData, branchesData] = await Promise.all([
+          getGrades(),
+          getBranches(),
+        ]);
+
+        setGrades(gradesData);
+        setBranches(branchesData);
+      } catch (error) {
+        console.error("Failed to load grades and branches:", error);
+
+        setError(
+          "Failed to load grades and branches. Please make sure the backend server is running.",
+        );
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    loadOptions();
+  }, []);
+
+  // =========================
+  // Child input changes
+  // =========================
+  const handleChildChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+
+    setFormData((current) => ({
+      ...current,
+      [name]: name === "age" ? Number(value) : value,
+    }));
+  };
+
+  // =========================
+  // Parent input changes
+  // =========================
+  const handleParentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setParentData((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+
+  // =========================
+  // Submit
+  // =========================
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    setError("");
+
+    // =========================
+    // Validate child
+    // =========================
+    if (!formData.name.trim()) {
+      setError("Child name is required.");
+      return;
+    }
+
+    if (!formData.age || formData.age < 1) {
+      setError("Please enter a valid child age.");
+      return;
+    }
+
+    if (!formData.gradeId) {
+      setError("Please select a class.");
+      return;
+    }
+
+    if (!formData.branchId) {
+      setError("Please select a branch.");
+      return;
+    }
+
+    // =========================
+    // Validate parent
+    // =========================
+    if (!parentData.name.trim()) {
+      setError("Parent / Guardian name is required.");
+      return;
+    }
+
+    if (!parentData.phone.trim()) {
+      setError("Parent / Guardian phone number is required.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // =====================================================
+      // STEP 1: Create the parent first
+      // =====================================================
+      const createdParent = await createParent({
+        name: parentData.name.trim(),
+        phone: parentData.phone.trim(),
+        email: parentData.email?.trim() || "",
+      });
+
+      // =====================================================
+      // STEP 2: Use the new parent's ID to create the child
+      // =====================================================
+      await createChild({
+        name: formData.name.trim(),
+        age: formData.age,
+        parentId: createdParent.id,
+        gradeId: formData.gradeId,
+        branchId: formData.branchId,
+      });
+
+      // =====================================================
+      // STEP 3: Go back to All Children
+      // =====================================================
+      navigate("/children");
+    } catch (error) {
+      console.error("Failed to register child:", error);
+
+      setError(
+        "Failed to register child. Please check the details and try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 mx-4 mt-3 pb-3">
       {/* =========================
@@ -18,21 +205,15 @@ const AddChild = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
-            <span className="text-blue-600 dark:text-blue-400">
-              Dashboard
-            </span>
+            <span className="text-blue-600 dark:text-blue-400">Dashboard</span>
 
             <span>/</span>
 
-            <span className="text-blue-600 dark:text-blue-400">
-              Children
-            </span>
+            <span className="text-blue-600 dark:text-blue-400">Children</span>
 
             <span>/</span>
 
-            <span className="text-gray-600 dark:text-gray-300">
-              Add Child
-            </span>
+            <span className="text-gray-600 dark:text-gray-300">Add Child</span>
           </div>
 
           <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
@@ -44,6 +225,29 @@ const AddChild = () => {
           </p>
         </div>
       </div>
+
+      {/* =========================
+          ERROR
+      ========================== */}
+      {error && (
+        <div
+          className="
+            rounded-lg
+            border
+            border-red-200
+            bg-red-50
+            px-4
+            py-3
+            text-sm
+            text-red-700
+            dark:border-red-800
+            dark:bg-red-950/30
+            dark:text-red-400
+          "
+        >
+          {error}
+        </div>
+      )}
 
       {/* =========================
           FORM CARD
@@ -74,17 +278,14 @@ const AddChild = () => {
         {/* =========================
             FORM
         ========================== */}
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className="p-6">
             {/* =========================
                 PERSONAL INFORMATION
             ========================== */}
             <div className="mb-7">
               <div className="flex items-center gap-2 mb-4">
-                <User
-                  size={17}
-                  className="text-blue-600 dark:text-blue-400"
-                />
+                <User size={17} className="text-blue-600 dark:text-blue-400" />
 
                 <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                   Personal Information
@@ -101,7 +302,11 @@ const AddChild = () => {
 
                   <input
                     type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChildChange}
                     placeholder="Enter child's full name"
+                    disabled={loading}
                     className="
                       w-full
                       h-11
@@ -117,6 +322,7 @@ const AddChild = () => {
                       focus:ring-2
                       focus:ring-blue-100 dark:focus:ring-blue-950
                       transition
+                      disabled:opacity-50
                     "
                   />
                 </div>
@@ -130,9 +336,13 @@ const AddChild = () => {
 
                   <input
                     type="number"
+                    name="age"
                     min="1"
                     max="20"
+                    value={formData.age || ""}
+                    onChange={handleChildChange}
                     placeholder="Enter age"
+                    disabled={loading}
                     className="
                       w-full
                       h-11
@@ -148,11 +358,12 @@ const AddChild = () => {
                       focus:ring-2
                       focus:ring-blue-100 dark:focus:ring-blue-950
                       transition
+                      disabled:opacity-50
                     "
                   />
                 </div>
 
-                {/* Class */}
+                {/* Grade */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Class
@@ -161,6 +372,10 @@ const AddChild = () => {
 
                   <div className="relative">
                     <select
+                      name="gradeId"
+                      value={formData.gradeId}
+                      onChange={handleChildChange}
+                      disabled={loading || loadingOptions}
                       className="
                         appearance-none
                         w-full
@@ -178,22 +393,20 @@ const AddChild = () => {
                         focus:ring-blue-100 dark:focus:ring-blue-950
                         cursor-pointer
                         transition
+                        disabled:opacity-50
                       "
-                      defaultValue=""
                     >
                       <option value="" disabled>
-                        Select class
+                        {loadingOptions ? "Loading classes..." : "Select class"}
                       </option>
-                      <option value="PP2">PP1</option>
-                      <option value="PP1">PP2</option>
-                      <option value="Grade 1">Grade 1</option>
-                      <option value="Grade 2">Grade 2</option>
-                      <option value="Grade 3">Grade 3</option>
-                      <option value="Grade 4">Grade 4</option>
-                      <option value="Grade 5">Grade 5</option>
-                      <option value="Grade 6">Grade 6</option>
-                      <option value="Grade 7">Grade 7</option>
-                      <option value="Grade 8">Grade 8</option>
+
+                      {grades
+                        .filter((grade) => grade.status === "ACTIVE")
+                        .map((grade) => (
+                          <option key={grade.id} value={grade.id}>
+                            {grade.name}
+                          </option>
+                        ))}
                     </select>
 
                     <BookOpen
@@ -236,7 +449,10 @@ const AddChild = () => {
                   </label>
 
                   <select
-                    defaultValue=""
+                    name="branchId"
+                    value={formData.branchId}
+                    onChange={handleChildChange}
+                    disabled={loading || loadingOptions}
                     className="
                       w-full
                       h-11
@@ -251,23 +467,18 @@ const AddChild = () => {
                       focus:ring-2
                       focus:ring-blue-100 dark:focus:ring-blue-950
                       cursor-pointer
+                      disabled:opacity-50
                     "
                   >
                     <option value="" disabled>
-                      Select branch
+                      {loadingOptions ? "Loading branches..." : "Select branch"}
                     </option>
 
-                    <option value="Main Church">
-                      Main Church
-                    </option>
-
-                    <option value="Shiloh Worship Centre">
-                      Shiloh Worship Centre
-                    </option>
-
-                    <option value="Ukombozi Restoration Center">
-                      Ukombozi Restoration Center
-                    </option>
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -278,10 +489,7 @@ const AddChild = () => {
             ========================== */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Users
-                  size={17}
-                  className="text-blue-600 dark:text-blue-400"
-                />
+                <Users size={17} className="text-blue-600 dark:text-blue-400" />
 
                 <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                   Parent / Guardian Information
@@ -289,16 +497,20 @@ const AddChild = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5">
-                {/* Parent */}
+                {/* Parent Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Parent / Guardian
+                    Parent / Guardian Name
                     <span className="text-red-500 ml-1">*</span>
                   </label>
 
                   <input
                     type="text"
+                    name="name"
+                    value={parentData.name}
+                    onChange={handleParentChange}
                     placeholder="Enter parent or guardian name"
+                    disabled={loading}
                     className="
                       w-full
                       h-11
@@ -314,6 +526,7 @@ const AddChild = () => {
                       focus:ring-2
                       focus:ring-blue-100 dark:focus:ring-blue-950
                       transition
+                      disabled:opacity-50
                     "
                   />
                 </div>
@@ -339,7 +552,11 @@ const AddChild = () => {
 
                     <input
                       type="tel"
-                      placeholder="e.g. 0721 234 567"
+                      name="phone"
+                      value={parentData.phone}
+                      onChange={handleParentChange}
+                      placeholder="Parent phone number"
+                      disabled={loading}
                       className="
                         w-full
                         h-11
@@ -356,6 +573,55 @@ const AddChild = () => {
                         focus:ring-2
                         focus:ring-blue-100 dark:focus:ring-blue-950
                         transition
+                        disabled:opacity-50
+                      "
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Email Address
+                    <span className="text-gray-400 ml-1">(Optional)</span>
+                  </label>
+
+                  <div className="relative">
+                    <Mail
+                      size={17}
+                      className="
+                        absolute
+                        left-3.5
+                        top-1/2
+                        -translate-y-1/2
+                        text-gray-400
+                      "
+                    />
+
+                    <input
+                      type="email"
+                      name="email"
+                      value={parentData.email || ""}
+                      onChange={handleParentChange}
+                      placeholder="Parent email address"
+                      disabled={loading}
+                      className="
+                        w-full
+                        h-11
+                        pl-10
+                        pr-4
+                        rounded-lg
+                        border border-gray-200 dark:border-gray-700
+                        bg-white dark:bg-gray-800
+                        text-sm
+                        text-gray-800 dark:text-gray-100
+                        placeholder-gray-400 dark:placeholder-gray-500
+                        outline-none
+                        focus:border-blue-500
+                        focus:ring-2
+                        focus:ring-blue-100 dark:focus:ring-blue-950
+                        transition
+                        disabled:opacity-50
                       "
                     />
                   </div>
@@ -379,12 +645,13 @@ const AddChild = () => {
               py-4
               bg-gray-50 dark:bg-gray-800/60
               border-t border-gray-200 dark:border-gray-700
-              
             "
           >
             {/* Cancel */}
             <button
               type="button"
+              onClick={() => navigate("/children")}
+              disabled={loading}
               className="
                 w-full
                 sm:w-auto
@@ -403,6 +670,7 @@ const AddChild = () => {
                 hover:bg-gray-50 dark:hover:bg-gray-700
                 transition
                 cursor-pointer
+                disabled:opacity-50
               "
             >
               <X size={16} />
@@ -412,6 +680,7 @@ const AddChild = () => {
             {/* Save */}
             <button
               type="submit"
+              disabled={loading || loadingOptions}
               className="
                 w-full
                 sm:w-auto
@@ -431,10 +700,13 @@ const AddChild = () => {
                 gap-2
                 transition
                 cursor-pointer
+                disabled:opacity-50
+                disabled:cursor-not-allowed
               "
             >
               <Save size={16} />
-              Save Child
+
+              {loading ? "Saving..." : "Save Child"}
             </button>
           </div>
         </form>

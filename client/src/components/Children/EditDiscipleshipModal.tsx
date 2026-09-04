@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { Save, X } from "lucide-react";
-import type { Milestone } from "./Discipleship";
+
+import type {
+  DiscipleshipRecord,
+  UpdateDiscipleshipData,
+} from "../../services/discipleshipService";
 
 interface EditDiscipleshipModalProps {
   isOpen: boolean;
-  milestone: Milestone | null;
+  milestone: DiscipleshipRecord | null;
   onClose: () => void;
-  onSave: (updatedMilestone: Milestone) => void;
+  onSave: (updatedMilestone: DiscipleshipRecord) => void;
 }
 
 const EditDiscipleshipModal = ({
@@ -19,20 +23,16 @@ const EditDiscipleshipModal = ({
   // FORM STATE
   // =====================================================
 
-  const [recordType, setRecordType] = useState("Milestone");
-
+  const [recordType, setRecordType] = useState("");
   const [recordTitle, setRecordTitle] = useState("");
-
   const [recordDescription, setRecordDescription] = useState("");
-
+  const [recordDate, setRecordDate] = useState("");
   const [recordStatus, setRecordStatus] = useState("In Progress");
-
-  const [recordMentor, setRecordMentor] = useState("David Kamau");
-
+  const [recordMentor, setRecordMentor] = useState("");
   const [recordNotes, setRecordNotes] = useState("");
 
   // =====================================================
-  // LOAD SELECTED MILESTONE
+  // LOAD RECORD INTO FORM
   // =====================================================
 
   useEffect(() => {
@@ -41,9 +41,17 @@ const EditDiscipleshipModal = ({
     setRecordType(milestone.type);
     setRecordTitle(milestone.title);
     setRecordDescription(milestone.description);
+
+    if (milestone.date) {
+      setRecordDate(new Date(milestone.date).toISOString().split("T")[0]);
+    } else {
+      setRecordDate("");
+    }
+
     setRecordStatus(milestone.completed ? "Completed" : "In Progress");
+
     setRecordMentor(milestone.mentor);
-    setRecordNotes(milestone.notes);
+    setRecordNotes(milestone.notes || "");
   }, [milestone]);
 
   // =====================================================
@@ -55,41 +63,56 @@ const EditDiscipleshipModal = ({
   };
 
   // =====================================================
-  // SAVE CHANGES
+  // SAVE
   // =====================================================
 
   const handleSubmit = () => {
-    if (!milestone || !recordTitle.trim()) {
+    if (
+      !milestone ||
+      !recordTitle.trim() ||
+      !recordDescription.trim() ||
+      !recordMentor.trim()
+    ) {
       return;
     }
 
-    const updatedMilestone: Milestone = {
-      ...milestone,
-      title: recordTitle.trim(),
-      description: recordDescription.trim() || "No description provided.",
-      completed: recordStatus === "Completed",
+    const data: UpdateDiscipleshipData = {
       type: recordType,
-      mentor: recordMentor,
+      title: recordTitle.trim(),
+      description: recordDescription.trim(),
+      date: recordDate || null,
+      completed: recordStatus === "Completed",
+      mentor: recordMentor.trim(),
       notes: recordNotes.trim(),
     };
 
-    onSave(updatedMilestone);
+    const updatedRecord: DiscipleshipRecord = {
+      ...milestone,
+      ...data,
+      date: recordDate || null,
+      completed: recordStatus === "Completed",
+      updatedAt: new Date().toISOString(),
+    };
+
+    onSave(updatedRecord);
   };
 
   // =====================================================
-  // DON'T RENDER WHEN CLOSED
+  // DON'T RENDER
   // =====================================================
 
   if (!isOpen || !milestone) {
     return null;
   }
 
+  // =====================================================
+  // UI
+  // =====================================================
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-xl dark:bg-gray-800">
-        {/* =================================================
-            HEADER
-        ================================================= */}
+        {/* HEADER */}
 
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
           <div>
@@ -98,7 +121,7 @@ const EditDiscipleshipModal = ({
             </h2>
 
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Update the selected discipleship record.
+              Update this child's discipleship record.
             </p>
           </div>
 
@@ -111,9 +134,7 @@ const EditDiscipleshipModal = ({
           </button>
         </div>
 
-        {/* =================================================
-            FORM
-        ================================================= */}
+        {/* FORM */}
 
         <div className="space-y-5 p-6">
           {/* Record Type */}
@@ -126,7 +147,7 @@ const EditDiscipleshipModal = ({
             <select
               value={recordType}
               onChange={(e) => setRecordType(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-900/30"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             >
               <option value="Milestone">Milestone</option>
 
@@ -155,8 +176,7 @@ const EditDiscipleshipModal = ({
               type="text"
               value={recordTitle}
               onChange={(e) => setRecordTitle(e.target.value)}
-              placeholder="e.g. Understanding Prayer"
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
           </div>
 
@@ -171,30 +191,44 @@ const EditDiscipleshipModal = ({
               value={recordDescription}
               onChange={(e) => setRecordDescription(e.target.value)}
               rows={3}
-              placeholder="Describe the milestone or activity..."
-              className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
+              className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
           </div>
 
-          {/* Status */}
+          {/* DATE + STATUS */}
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
-              Status
-            </label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                Date
+              </label>
 
-            <select
-              value={recordStatus}
-              onChange={(e) => setRecordStatus(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-900/30"
-            >
-              <option value="Completed">Completed</option>
+              <input
+                type="date"
+                value={recordDate}
+                onChange={(e) => setRecordDate(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              />
+            </div>
 
-              <option value="In Progress">In Progress</option>
-            </select>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                Status
+              </label>
+
+              <select
+                value={recordStatus}
+                onChange={(e) => setRecordStatus(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="Completed">Completed</option>
+
+                <option value="In Progress">In Progress</option>
+              </select>
+            </div>
           </div>
 
-          {/* Mentor */}
+          {/* MENTOR */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -204,7 +238,7 @@ const EditDiscipleshipModal = ({
             <select
               value={recordMentor}
               onChange={(e) => setRecordMentor(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-900/30"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             >
               <option value="David Kamau">David Kamau</option>
 
@@ -214,7 +248,7 @@ const EditDiscipleshipModal = ({
             </select>
           </div>
 
-          {/* Notes */}
+          {/* NOTES */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -226,14 +260,12 @@ const EditDiscipleshipModal = ({
               onChange={(e) => setRecordNotes(e.target.value)}
               rows={3}
               placeholder="Add any additional notes..."
-              className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
+              className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
           </div>
         </div>
 
-        {/* =================================================
-            FOOTER
-        ================================================= */}
+        {/* FOOTER */}
 
         <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-700">
           <button
@@ -247,7 +279,11 @@ const EditDiscipleshipModal = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!recordTitle.trim()}
+            disabled={
+              !recordTitle.trim() ||
+              !recordDescription.trim() ||
+              !recordMentor.trim()
+            }
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Save size={16} />

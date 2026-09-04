@@ -1,85 +1,37 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { File, FileImage, FileText, FolderOpen, Upload } from "lucide-react";
 
 import AddDocumentModal from "./AddDocumentModal";
 import EditDocumentModal from "./EditDocumentModal";
 import DocumentsList from "./DocumentsList";
 
-export interface DocumentRecord {
-  id: number;
-  name: string;
-  type: "PDF" | "JPG" | "PNG";
-  category:
-    | "Identification"
-    | "Consent"
-    | "Photo"
-    | "Medical"
-    | "Education"
-    | "Other";
-  size: string;
-  date: string;
-  fileName: string;
+import {
+  getDocuments,
+  createDocument,
+  updateDocument,
+  deleteDocument,
+  type DocumentRecord,
+  type DocumentCategory,
+} from "../../services/documentService";
+
+interface DocumentsProps {
+  childId: string;
 }
 
-const Documents = () => {
+const Documents = ({ childId }: DocumentsProps) => {
   // =====================================================
-  // DOCUMENT DATA
+  // DOCUMENT STATE
   // =====================================================
 
-  const [documents, setDocuments] = useState<DocumentRecord[]>([
-    {
-      id: 1,
-      name: "Birth Certificate",
-      type: "PDF",
-      category: "Identification",
-      size: "1.2 MB",
-      date: "May 12, 2024",
-      fileName: "birth-certificate.pdf",
-    },
-    {
-      id: 2,
-      name: "Parent Consent Form",
-      type: "PDF",
-      category: "Consent",
-      size: "845 KB",
-      date: "May 15, 2024",
-      fileName: "parent-consent-form.pdf",
-    },
-    {
-      id: 3,
-      name: "Child Profile Photo",
-      type: "JPG",
-      category: "Photo",
-      size: "2.4 MB",
-      date: "May 12, 2024",
-      fileName: "child-profile-photo.jpg",
-    },
-    {
-      id: 4,
-      name: "Medical Information Form",
-      type: "PDF",
-      category: "Medical",
-      size: "980 KB",
-      date: "May 16, 2024",
-      fileName: "medical-information-form.pdf",
-    },
-    {
-      id: 5,
-      name: "School Report",
-      type: "PDF",
-      category: "Education",
-      size: "1.7 MB",
-      date: "July 20, 2026",
-      fileName: "school-report.pdf",
-    },
-  ]);
+  const [documents, setDocuments] = useState<DocumentRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // =====================================================
   // MODAL STATE
   // =====================================================
 
   const [showAddModal, setShowAddModal] = useState(false);
-
   const [showEditModal, setShowEditModal] = useState(false);
 
   const [editingDocument, setEditingDocument] = useState<DocumentRecord | null>(
@@ -87,42 +39,69 @@ const Documents = () => {
   );
 
   // =====================================================
+  // LOAD DOCUMENTS
+  // =====================================================
+
+  const loadDocuments = async () => {
+    if (!childId) {
+      setDocuments([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const data = await getDocuments(childId);
+
+      setDocuments(data);
+    } catch (err) {
+      console.error("Failed to load documents:", err);
+
+      setError(
+        err instanceof Error ? err.message : "Failed to load documents.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDocuments();
+  }, [childId]);
+
+  // =====================================================
   // SUMMARY DATA
   // =====================================================
 
   const totalDocuments = documents.length;
 
-  const pdfDocuments = useMemo(
-    () => documents.filter((document) => document.type === "PDF").length,
-    [documents],
-  );
+  const pdfDocuments = useMemo(() => {
+    return documents.filter((document) => document.type === "PDF").length;
+  }, [documents]);
 
-  const imageDocuments = useMemo(
-    () =>
-      documents.filter(
-        (document) => document.type === "JPG" || document.type === "PNG",
-      ).length,
-    [documents],
-  );
+  const imageDocuments = useMemo(() => {
+    return documents.filter(
+      (document) => document.type === "JPG" || document.type === "PNG",
+    ).length;
+  }, [documents]);
 
-  /*
-    Convert the stored sizes into MB so that the storage
-    card can be calculated automatically.
-  */
+  // =====================================================
+  // STORAGE USED
+  // =====================================================
+
   const storageUsed = useMemo(() => {
-    let totalMB = 0;
+    const totalBytes = documents.reduce(
+      (total, document) => total + document.size,
+      0,
+    );
 
-    documents.forEach((document) => {
-      const value = parseFloat(document.size);
+    if (totalBytes === 0) {
+      return "0.0";
+    }
 
-      if (document.size.includes("GB")) {
-        totalMB += value * 1024;
-      } else if (document.size.includes("KB")) {
-        totalMB += value / 1024;
-      } else {
-        totalMB += value;
-      }
-    });
+    const totalMB = totalBytes / (1024 * 1024);
 
     return totalMB.toFixed(1);
   }, [documents]);
@@ -131,14 +110,33 @@ const Documents = () => {
   // ADD DOCUMENT
   // =====================================================
 
-  const handleAddDocument = (newDocument: DocumentRecord) => {
-    setDocuments((currentDocuments) => [newDocument, ...currentDocuments]);
+  const handleAddDocument = async (
+    name: string,
+    category: DocumentCategory,
+    file: File,
+  ) => {
+    try {
+      setError(null);
 
-    setShowAddModal(false);
+      // Service expects an object.
+      const newDocument = await createDocument(childId, {
+        name,
+        category,
+        file,
+      });
+
+      setDocuments((currentDocuments) => [newDocument, ...currentDocuments]);
+
+      setShowAddModal(false);
+    } catch (err) {
+      console.error("Failed to upload document:", err);
+
+      throw err;
+    }
   };
 
   // =====================================================
-  // EDIT DOCUMENT
+  // OPEN EDIT MODAL
   // =====================================================
 
   const handleOpenEdit = (document: DocumentRecord) => {
@@ -146,35 +144,77 @@ const Documents = () => {
     setShowEditModal(true);
   };
 
-  const handleEditDocument = (updatedDocument: DocumentRecord) => {
-    setDocuments((currentDocuments) =>
-      currentDocuments.map((document) =>
-        document.id === updatedDocument.id ? updatedDocument : document,
-      ),
-    );
+  // =====================================================
+  // EDIT DOCUMENT
+  // =====================================================
 
-    setEditingDocument(null);
-    setShowEditModal(false);
+  const handleEditDocument = async (
+    name: string,
+    category: DocumentCategory,
+    file?: File,
+  ) => {
+    if (!editingDocument) {
+      return;
+    }
+
+    try {
+      setError(null);
+
+      const updatedDocument = await updateDocument(editingDocument.id, {
+        name,
+        category,
+        file,
+      });
+
+      setDocuments((currentDocuments) =>
+        currentDocuments.map((document) =>
+          document.id === updatedDocument.id ? updatedDocument : document,
+        ),
+      );
+
+      setEditingDocument(null);
+      setShowEditModal(false);
+    } catch (err) {
+      console.error("Failed to update document:", err);
+
+      throw err;
+    }
   };
 
   // =====================================================
   // DELETE DOCUMENT
   // =====================================================
 
-  const handleDeleteDocument = (id: number) => {
+  const handleDeleteDocument = async (id: string) => {
     const document = documents.find((item) => item.id === id);
 
-    if (!document) return;
+    if (!document) {
+      return;
+    }
 
     const confirmed = window.confirm(
       `Are you sure you want to delete "${document.name}"?`,
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
-    setDocuments((currentDocuments) =>
-      currentDocuments.filter((item) => item.id !== id),
-    );
+    try {
+      setError(null);
+
+      await deleteDocument(id);
+
+      setDocuments((currentDocuments) =>
+        currentDocuments.filter((item) => item.id !== id),
+      );
+    } catch (err) {
+      console.error("Failed to delete document:", err);
+
+      setError(
+        err instanceof Error ? err.message : "Failed to delete document.",
+      );
+    }
   };
 
   // =====================================================
@@ -182,15 +222,12 @@ const Documents = () => {
   // =====================================================
 
   const handleViewDocument = (document: DocumentRecord) => {
-    /*
-      For now, documents are dummy records, so there is
-      no real uploaded file to open.
+    if (!document.fileUrl) {
+      setError("Document file URL is not available.");
+      return;
+    }
 
-      Later, when the backend/file storage is connected,
-      this function can open the actual file URL.
-    */
-
-    window.alert(`Viewing: ${document.fileName}`);
+    window.open(document.fileUrl, "_blank", "noopener,noreferrer");
   };
 
   // =====================================================
@@ -198,15 +235,25 @@ const Documents = () => {
   // =====================================================
 
   const handleDownloadDocument = (document: DocumentRecord) => {
-    /*
-      Actual downloading will be connected when the
-      application has real file storage.
+    if (!document.fileUrl) {
+      setError("Document file URL is not available.");
+      return;
+    }
 
-      For now we simply show which file would be
-      downloaded.
-    */
+    const link = window.document.createElement("a");
 
-    window.alert(`Downloading: ${document.fileName}`);
+    link.href = document.fileUrl;
+
+    link.download = document.originalName || document.fileName || document.name;
+
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+
+    window.document.body.appendChild(link);
+
+    link.click();
+
+    window.document.body.removeChild(link);
   };
 
   // =====================================================
@@ -233,13 +280,34 @@ const Documents = () => {
 
           <button
             type="button"
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setError(null);
+              setShowAddModal(true);
+            }}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
           >
             <Upload size={17} />
             Upload Document
           </button>
         </div>
+
+        {/* =================================================
+            ERROR MESSAGE
+        ================================================= */}
+
+        {error && (
+          <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
+            <span>{error}</span>
+
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              className="ml-4 font-medium hover:underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* =================================================
             SUMMARY CARDS
@@ -269,7 +337,7 @@ const Documents = () => {
             </div>
           </div>
 
-          {/* PDFs */}
+          {/* PDF Documents */}
 
           <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div className="flex items-center justify-between">
@@ -359,7 +427,10 @@ const Documents = () => {
 
           <button
             type="button"
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setError(null);
+              setShowAddModal(true);
+            }}
             className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             <Upload size={15} />
@@ -375,13 +446,23 @@ const Documents = () => {
             DOCUMENT LIST
         ================================================= */}
 
-        <DocumentsList
-          documents={documents}
-          onEdit={handleOpenEdit}
-          onDelete={handleDeleteDocument}
-          onView={handleViewDocument}
-          onDownload={handleDownloadDocument}
-        />
+        {loading ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+
+            <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+              Loading documents...
+            </p>
+          </div>
+        ) : (
+          <DocumentsList
+            documents={documents}
+            onEdit={handleOpenEdit}
+            onDelete={handleDeleteDocument}
+            onView={handleViewDocument}
+            onDownload={handleDownloadDocument}
+          />
+        )}
       </div>
 
       {/* =================================================
@@ -390,8 +471,14 @@ const Documents = () => {
 
       <AddDocumentModal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleAddDocument}
+        onClose={() => {
+          setShowAddModal(false);
+        }}
+        onSave={() => {
+          // Kept for compatibility with the modal props.
+          // Actual upload is handled by onUpload.
+        }}
+        onUpload={handleAddDocument}
       />
 
       {/* =================================================

@@ -1,5 +1,6 @@
 import { Edit, User } from "lucide-react";
 import { useState } from "react";
+
 import EditPersonalInformationModal from "./EditPersonalInformationModal";
 import type { ChildPersonalInfo } from "../../data/childPersonalInfo";
 
@@ -8,7 +9,10 @@ interface PersonalInformationProps {
   onUpdate: (updatedInfo: ChildPersonalInfo) => void;
 }
 
-const PersonalInformation = ({ info, onUpdate }: PersonalInformationProps) => {
+const PersonalInformation = ({
+  info,
+  onUpdate,
+}: PersonalInformationProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
 
   const handleSave = (updatedInfo: ChildPersonalInfo) => {
@@ -23,7 +27,10 @@ const PersonalInformation = ({ info, onUpdate }: PersonalInformationProps) => {
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-              <User size={17} className="text-blue-600 dark:text-blue-400" />
+              <User
+                size={17}
+                className="text-blue-600 dark:text-blue-400"
+              />
             </div>
 
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -51,7 +58,7 @@ const PersonalInformation = ({ info, onUpdate }: PersonalInformationProps) => {
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.fullName}
+              {info.fullName || "Not provided"}
             </p>
           </div>
 
@@ -62,7 +69,7 @@ const PersonalInformation = ({ info, onUpdate }: PersonalInformationProps) => {
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.gender}
+              {info.gender || "Not provided"}
             </p>
           </div>
 
@@ -73,7 +80,7 @@ const PersonalInformation = ({ info, onUpdate }: PersonalInformationProps) => {
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.dateOfBirth}
+              {info.dateOfBirth || "Not provided"}
             </p>
           </div>
 
@@ -84,7 +91,9 @@ const PersonalInformation = ({ info, onUpdate }: PersonalInformationProps) => {
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.age} years
+              {info.age !== null && info.age !== undefined
+                ? `${info.age} years`
+                : "Not provided"}
             </p>
           </div>
 
@@ -95,7 +104,7 @@ const PersonalInformation = ({ info, onUpdate }: PersonalInformationProps) => {
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.bloodGroup}
+              {info.bloodGroup || "Not provided"}
             </p>
           </div>
 
@@ -106,7 +115,7 @@ const PersonalInformation = ({ info, onUpdate }: PersonalInformationProps) => {
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.language}
+              {info.language || "Not provided"}
             </p>
           </div>
 
@@ -117,7 +126,7 @@ const PersonalInformation = ({ info, onUpdate }: PersonalInformationProps) => {
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.address}
+              {info.address || "Not provided"}
             </p>
           </div>
 
@@ -128,7 +137,7 @@ const PersonalInformation = ({ info, onUpdate }: PersonalInformationProps) => {
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.nationality}
+              {info.nationality || "Not provided"}
             </p>
           </div>
         </div>

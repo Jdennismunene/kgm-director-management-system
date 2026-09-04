@@ -1,12 +1,20 @@
 import { useEffect, useState } from "react";
 import { FileUp, Save, X } from "lucide-react";
-import type { DocumentRecord } from "./Documents";
+
+import type {
+  DocumentCategory,
+  DocumentRecord,
+} from "../../services/documentService";
 
 interface EditDocumentModalProps {
   isOpen: boolean;
   document: DocumentRecord | null;
   onClose: () => void;
-  onSave: (document: DocumentRecord) => void;
+  onSave: (
+    name: string,
+    category: DocumentCategory,
+    file?: File,
+  ) => Promise<void>;
 }
 
 const EditDocumentModal = ({
@@ -21,27 +29,64 @@ const EditDocumentModal = ({
 
   const [name, setName] = useState("");
 
-  const [category, setCategory] = useState<DocumentRecord["category"]>("Other");
+  const [category, setCategory] = useState<DocumentCategory>("OTHER");
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [fileName, setFileName] = useState("");
 
-  const [fileType, setFileType] = useState<DocumentRecord["type"]>("PDF");
+  const [fileType, setFileType] = useState<"PDF" | "JPG" | "PNG">("PDF");
 
   const [fileSize, setFileSize] = useState("");
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [error, setError] = useState("");
 
   // =====================================================
   // LOAD SELECTED DOCUMENT
   // =====================================================
 
   useEffect(() => {
-    if (!document) return;
+    if (!document) {
+      setName("");
+      setCategory("OTHER");
+      setSelectedFile(null);
+      setFileName("");
+      setFileType("PDF");
+      setFileSize("");
+      setError("");
+      return;
+    }
 
     setName(document.name);
     setCategory(document.category);
-    setFileName(document.fileName);
+    setSelectedFile(null);
+    setFileName(document.originalName || document.fileName);
     setFileType(document.type);
-    setFileSize(document.size);
+    setFileSize(formatFileSize(document.size));
+    setError("");
   }, [document]);
+
+  // =====================================================
+  // FORMAT FILE SIZE
+  // =====================================================
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    const kb = bytes / 1024;
+
+    if (kb < 1024) {
+      return `${Math.round(kb)} KB`;
+    }
+
+    const mb = kb / 1024;
+
+    return `${mb.toFixed(1)} MB`;
+  };
 
   // =====================================================
   // FILE CHANGE
@@ -52,48 +97,87 @@ const EditDocumentModal = ({
 
     if (!file) return;
 
+    setError("");
+
+    // -----------------------------------------------------
+    // Validate size
+    // -----------------------------------------------------
+
+    const maxSize = 10 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      setError("File size cannot exceed 10 MB.");
+      event.target.value = "";
+      return;
+    }
+
+    // -----------------------------------------------------
+    // Validate MIME type
+    // -----------------------------------------------------
+
+    const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
+
+    if (!allowedMimeTypes.includes(file.type)) {
+      setError("Only PDF, JPG, and PNG files are allowed.");
+      event.target.value = "";
+      return;
+    }
+
+    // -----------------------------------------------------
+    // Store actual File object
+    // -----------------------------------------------------
+
+    setSelectedFile(file);
+
     setFileName(file.name);
 
-    const extension = file.name.split(".").pop()?.toUpperCase();
+    // -----------------------------------------------------
+    // Determine type
+    // -----------------------------------------------------
 
-    if (extension === "PDF" || extension === "JPG" || extension === "PNG") {
-      setFileType(extension as DocumentRecord["type"]);
+    if (file.type === "application/pdf") {
+      setFileType("PDF");
+    } else if (file.type === "image/jpeg") {
+      setFileType("JPG");
+    } else if (file.type === "image/png") {
+      setFileType("PNG");
     }
 
-    const sizeInKB = file.size / 1024;
+    // -----------------------------------------------------
+    // Determine size
+    // -----------------------------------------------------
 
-    if (sizeInKB >= 1024) {
-      setFileSize(`${(sizeInKB / 1024).toFixed(1)} MB`);
-    } else {
-      setFileSize(`${Math.round(sizeInKB)} KB`);
-    }
+    setFileSize(formatFileSize(file.size));
   };
 
   // =====================================================
   // SAVE CHANGES
   // =====================================================
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!document) return;
 
-    if (!name.trim() || !fileName || !fileSize) {
+    if (!name.trim()) {
+      setError("Document name is required.");
       return;
     }
 
-    const updatedDocument: DocumentRecord = {
-      ...document,
+    try {
+      setIsSaving(true);
+      setError("");
 
-      // Keep the original ID
-      id: document.id,
+      await onSave(name.trim(), category, selectedFile || undefined);
 
-      name: name.trim(),
-      category,
-      fileName,
-      type: fileType,
-      size: fileSize,
-    };
+      setIsSaving(false);
+    } catch (error) {
+      console.error("Document update error:", error);
 
-    onSave(updatedDocument);
+      setError(
+        error instanceof Error ? error.message : "Failed to update document.",
+      );
+
+      setIsSaving(false);
+    }
   };
 
   // =====================================================
@@ -129,7 +213,8 @@ const EditDocumentModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+            disabled={isSaving}
+            className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700 dark:hover:text-gray-200"
           >
             <X size={20} />
           </button>
@@ -152,7 +237,8 @@ const EditDocumentModal = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Birth Certificate"
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
+              disabled={isSaving}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
             />
           </div>
 
@@ -165,26 +251,27 @@ const EditDocumentModal = ({
 
             <select
               value={category}
-              onChange={(e) =>
-                setCategory(e.target.value as DocumentRecord["category"])
-              }
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-900/30"
+              onChange={(e) => setCategory(e.target.value as DocumentCategory)}
+              disabled={isSaving}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-900/30"
             >
-              <option value="Identification">Identification</option>
+              <option value="IDENTIFICATION">Identification</option>
 
-              <option value="Consent">Consent</option>
+              <option value="CONSENT">Consent</option>
 
-              <option value="Photo">Photo</option>
+              <option value="PHOTO">Photo</option>
 
-              <option value="Medical">Medical</option>
+              <option value="MEDICAL">Medical</option>
 
-              <option value="Education">Education</option>
+              <option value="EDUCATION">Education</option>
 
-              <option value="Other">Other</option>
+              <option value="OTHER">Other</option>
             </select>
           </div>
 
-          {/* Current File */}
+          {/* =================================================
+              CURRENT FILE
+          ================================================= */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -198,13 +285,17 @@ const EditDocumentModal = ({
 
               <div className="mt-1 flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
                 <span>{fileType}</span>
+
                 <span>•</span>
+
                 <span>{fileSize}</span>
               </div>
             </div>
           </div>
 
-          {/* Replace File */}
+          {/* =================================================
+              REPLACE FILE
+          ================================================= */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -220,13 +311,15 @@ const EditDocumentModal = ({
                 />
               </div>
 
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Choose a new file
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-gray-700 dark:text-gray-200">
+                  {selectedFile ? selectedFile.name : "Choose a new file"}
                 </p>
 
                 <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                  PDF, JPG or PNG • Maximum 10 MB
+                  {selectedFile
+                    ? `${fileType} • ${fileSize}`
+                    : "PDF, JPG or PNG • Maximum 10 MB"}
                 </p>
               </div>
 
@@ -234,10 +327,21 @@ const EditDocumentModal = ({
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleFileChange}
+                disabled={isSaving}
                 className="hidden"
               />
             </label>
           </div>
+
+          {/* =================================================
+              ERROR
+          ================================================= */}
+
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
+              {error}
+            </div>
+          )}
         </div>
 
         {/* =================================================
@@ -248,7 +352,8 @@ const EditDocumentModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+            disabled={isSaving}
+            className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
           >
             Cancel
           </button>
@@ -256,11 +361,12 @@ const EditDocumentModal = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!name.trim() || !fileName || !fileSize}
+            disabled={isSaving || !name.trim()}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Save size={16} />
-            Save Changes
+
+            {isSaving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>

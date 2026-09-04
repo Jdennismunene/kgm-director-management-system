@@ -1,6 +1,14 @@
-import { X, User, Phone, BookOpen, UserRound } from "lucide-react";
+import {
+  X,
+  User,
+  Phone,
+  BookOpen,
+  UserRound,
+  Building2,
+  CalendarDays,
+} from "lucide-react";
 
-import type { Child } from "../../data/childrenData";
+import type { Child } from "../../services/childService";
 
 interface ChildDetailsModalProps {
   child: Child | null;
@@ -8,10 +16,40 @@ interface ChildDetailsModalProps {
 }
 
 const ChildDetailsModal = ({ child, onClose }: ChildDetailsModalProps) => {
-  // If no child is selected, don't show anything
+  // =========================
+  // No child selected
+  // =========================
+
   if (!child) {
     return null;
   }
+
+  // =========================
+  // Format created date
+  // =========================
+
+  const formattedCreatedDate = new Date(child.createdAt).toLocaleDateString(
+    "en-KE",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    },
+  );
+
+  // =========================
+  // Initials
+  // =========================
+
+  const initials = child.name
+    .split(" ")
+    .filter(Boolean)
+    .map((name) => name[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const isActive = child.status === "ACTIVE";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 px-4">
@@ -20,6 +58,7 @@ const ChildDetailsModal = ({ child, onClose }: ChildDetailsModalProps) => {
         {/* =========================
             HEADER
         ========================== */}
+
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <div>
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -59,9 +98,11 @@ const ChildDetailsModal = ({ child, onClose }: ChildDetailsModalProps) => {
         {/* =========================
             CHILD PROFILE
         ========================== */}
+
         <div className="px-6 py-5">
           <div className="flex items-center gap-4 mb-6">
             {/* Avatar */}
+
             <div
               className="
                 w-16
@@ -76,24 +117,21 @@ const ChildDetailsModal = ({ child, onClose }: ChildDetailsModalProps) => {
                 justify-center
                 text-lg
                 font-semibold
+                shrink-0
               "
             >
-              {child.name
-                .split(" ")
-                .map((name) => name[0])
-                .join("")
-                .slice(0, 2)}
+              {initials}
             </div>
 
             {/* Name */}
-            <div>
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+
+            <div className="min-w-0">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 truncate">
                 {child.name}
               </h3>
 
               <div className="flex items-center gap-2 mt-1">
-                {/* Active */}
-                {child.status === "Active" ? (
+                {isActive ? (
                   <span
                     className="
                       inline-flex
@@ -117,7 +155,6 @@ const ChildDetailsModal = ({ child, onClose }: ChildDetailsModalProps) => {
                     Active
                   </span>
                 ) : (
-                  /* Inactive */
                   <span
                     className="
                       inline-flex
@@ -151,12 +188,13 @@ const ChildDetailsModal = ({ child, onClose }: ChildDetailsModalProps) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Age */}
+
             <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
                 <User size={19} className="text-blue-600 dark:text-blue-400" />
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Age</p>
 
                 <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
@@ -166,61 +204,106 @@ const ChildDetailsModal = ({ child, onClose }: ChildDetailsModalProps) => {
             </div>
 
             {/* Class */}
+
             <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <div className="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-950/40 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-950/40 flex items-center justify-center shrink-0">
                 <BookOpen
                   size={19}
                   className="text-purple-600 dark:text-purple-400"
                 />
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Class
                 </p>
 
-                <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                  {child.className}
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
+                  {child.grade.name}
                 </p>
               </div>
             </div>
 
             {/* Parent */}
+
             <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <div className="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center shrink-0">
                 <UserRound
                   size={19}
                   className="text-orange-500 dark:text-orange-400"
                 />
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Parent / Guardian
                 </p>
 
-                <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                  {child.parent}
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
+                  {child.parent.name}
                 </p>
               </div>
             </div>
 
             {/* Phone */}
+
             <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <div className="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-950/40 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-950/40 flex items-center justify-center shrink-0">
                 <Phone
                   size={19}
                   className="text-green-600 dark:text-green-400"
                 />
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Phone
                 </p>
 
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
+                  {child.parent.phone}
+                </p>
+              </div>
+            </div>
+
+            {/* Branch */}
+
+            <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center shrink-0">
+                <Building2
+                  size={19}
+                  className="text-indigo-600 dark:text-indigo-400"
+                />
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Branch
+                </p>
+
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
+                  {child.branch.name}
+                </p>
+              </div>
+            </div>
+
+            {/* Registered */}
+
+            <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                <CalendarDays
+                  size={19}
+                  className="text-gray-600 dark:text-gray-300"
+                />
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Registered
+                </p>
+
                 <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                  {child.phone}
+                  {formattedCreatedDate}
                 </p>
               </div>
             </div>
@@ -230,6 +313,7 @@ const ChildDetailsModal = ({ child, onClose }: ChildDetailsModalProps) => {
         {/* =========================
             FOOTER
         ========================== */}
+
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/70">
           <button
             type="button"

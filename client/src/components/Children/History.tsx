@@ -1,90 +1,140 @@
 import { Activity, CalendarDays, History as HistoryIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import HistoryList from "./HistoryList";
 import HistoryDetailsModal from "./HistoryDetailsModal";
 import type { HistoryItem } from "./HistoryList";
 
-const History = () => {
-  // =====================================================
-  // HISTORY DATA
-  // =====================================================
+import {
+  getHistory,
+  type HistoryRecord,
+  type HistoryType,
+} from "../../services/historyService";
 
-  const [historyItems] = useState<HistoryItem[]>([
-    {
-      id: 1,
-      title: "Payment Recorded",
-      description: "Sunday School Term 3 payment was recorded.",
-      date: "Aug 9, 2026",
-      time: "10:32 AM",
-      user: "Sarah Wanjiku",
-      type: "payment",
-    },
-    {
-      id: 2,
-      title: "Lesson Completed",
-      description: "Brian completed the lesson 'Knowing God'.",
-      date: "Aug 9, 2026",
-      time: "09:45 AM",
-      user: "David Kamau",
-      type: "lesson",
-    },
-    {
-      id: 3,
-      title: "Note Added",
-      description: "A new observation was added to the child's record.",
-      date: "Aug 9, 2026",
-      time: "09:15 AM",
-      user: "Sarah Wanjiku",
-      type: "note",
-    },
-    {
-      id: 4,
-      title: "Attendance Recorded",
-      description: "Child was marked present for Sunday School.",
-      date: "Aug 9, 2026",
-      time: "08:30 AM",
-      user: "Mary Njeri",
-      type: "attendance",
-    },
-    {
-      id: 5,
-      title: "Document Uploaded",
-      description: "School report was uploaded to the child's documents.",
-      date: "Jul 20, 2026",
-      time: "02:18 PM",
-      user: "David Kamau",
-      type: "document",
-    },
-    {
-      id: 6,
-      title: "Child Profile Updated",
-      description: "Child's class information was updated.",
-      date: "Jul 15, 2026",
-      time: "11:42 AM",
-      user: "Sarah Wanjiku",
-      type: "profile",
-    },
-    {
-      id: 7,
-      title: "Discipleship Track Updated",
-      description: "Child's discipleship progress was updated.",
-      date: "Jul 10, 2026",
-      time: "03:25 PM",
-      user: "David Kamau",
-      type: "discipleship",
-    },
-  ]);
+interface HistoryProps {
+  childId: string;
+}
 
+const History = ({ childId }: HistoryProps) => {
   // =====================================================
   // STATE
   // =====================================================
 
-  const [selectedItem, setSelectedItem] = useState<HistoryItem | null>(null);
+  const [historyRecords, setHistoryRecords] = useState<HistoryRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  const [selectedItem, setSelectedItem] = useState<HistoryItem | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const [filter, setFilter] = useState<"all" | HistoryItem["type"]>("all");
+
+  // =====================================================
+  // LOAD HISTORY
+  // =====================================================
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (!childId) {
+        setHistoryRecords([]);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const data = await getHistory(childId);
+
+        setHistoryRecords(data);
+      } catch (err) {
+        console.error("Failed to load child history:", err);
+
+        setError("Failed to load activity history.");
+        setHistoryRecords([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, [childId]);
+
+  // =====================================================
+  // CONVERT BACKEND TYPE TO UI TYPE
+  // =====================================================
+
+  const convertHistoryType = (type: HistoryType): HistoryItem["type"] => {
+    switch (type) {
+      case "PAYMENT":
+        return "payment";
+
+      case "LESSON":
+        return "lesson";
+
+      case "NOTE":
+        return "note";
+
+      case "ATTENDANCE":
+        return "attendance";
+
+      case "DOCUMENT":
+        return "document";
+
+      case "PROFILE":
+        return "profile";
+
+      case "DISCIPLESHIP":
+        return "discipleship";
+
+      default:
+        return "profile";
+    }
+  };
+
+  // =====================================================
+  // FORMAT DATE
+  // =====================================================
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // =====================================================
+  // FORMAT TIME
+  // =====================================================
+
+  const formatTime = (dateString: string): string => {
+    const date = new Date(dateString);
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // =====================================================
+  // CONVERT API DATA TO HISTORY LIST DATA
+  // =====================================================
+
+  const historyItems = useMemo<HistoryItem[]>(() => {
+    return historyRecords.map((record) => ({
+      id: record.id,
+      title: record.title,
+      description: record.description,
+      date: formatDate(record.createdAt),
+      time: formatTime(record.createdAt),
+      user: record.user,
+      type: convertHistoryType(record.type),
+    }));
+  }, [historyRecords]);
 
   // =====================================================
   // FILTER HISTORY
@@ -104,12 +154,21 @@ const History = () => {
 
   const totalActivities = historyItems.length;
 
-  const thisMonth = historyItems.filter((item) =>
-    item.date.includes("Aug 2026"),
-  ).length;
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+
+  const thisMonth = historyRecords.filter((record) => {
+    const date = new Date(record.createdAt);
+
+    return (
+      date.getMonth() === currentMonth && date.getFullYear() === currentYear
+    );
+  }).length;
 
   const lastActivity =
-    historyItems.length > 0 ? historyItems[0].date : "No activity";
+    historyRecords.length > 0
+      ? formatDate(historyRecords[0].createdAt)
+      : "No activity";
 
   // =====================================================
   // OPEN DETAILS
@@ -128,6 +187,10 @@ const History = () => {
     setIsDetailsOpen(false);
     setSelectedItem(null);
   };
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="mt-5 space-y-5">
@@ -258,31 +321,69 @@ const History = () => {
             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 outline-none transition focus:border-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
           >
             <option value="all">All Activities</option>
-
             <option value="payment">Payments</option>
-
             <option value="lesson">Lessons</option>
-
             <option value="note">Notes</option>
-
             <option value="attendance">Attendance</option>
-
             <option value="document">Documents</option>
-
             <option value="profile">Profile</option>
-
             <option value="discipleship">Discipleship</option>
           </select>
         </div>
 
         {/* =================================================
+            LOADING
+        ================================================= */}
+
+        {isLoading && (
+          <div className="flex items-center justify-center px-5 py-12">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Loading activity history...
+            </p>
+          </div>
+        )}
+
+        {/* =================================================
+            ERROR
+        ================================================= */}
+
+        {!isLoading && error && (
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
+        {/* =================================================
+            EMPTY STATE
+        ================================================= */}
+
+        {!isLoading && !error && filteredHistory.length === 0 && (
+          <div className="flex flex-col items-center justify-center px-5 py-12 text-center">
+            <HistoryIcon
+              size={32}
+              className="text-gray-300 dark:text-gray-600"
+            />
+
+            <p className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+              No activity found
+            </p>
+
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              There are no recorded activities for this child yet.
+            </p>
+          </div>
+        )}
+
+        {/* =================================================
             HISTORY LIST
         ================================================= */}
 
-        <HistoryList
-          historyItems={filteredHistory}
-          onView={handleViewDetails}
-        />
+        {!isLoading && !error && filteredHistory.length > 0 && (
+          <HistoryList
+            historyItems={filteredHistory}
+            onView={handleViewDetails}
+          />
+        )}
       </div>
 
       {/* =================================================

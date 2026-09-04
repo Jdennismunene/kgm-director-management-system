@@ -1,21 +1,22 @@
 import { Edit, GraduationCap } from "lucide-react";
 import { useState } from "react";
+
 import EditAcademicInformationModal from "./EditAcademicInformationModal";
-import type { AcademicInformationType } from "../../data/academicInformation";
+import type { Child } from "../../services/childService";
 
 interface AcademicInformationProps {
-  info: AcademicInformationType;
-  onUpdate: (updatedInfo: AcademicInformationType) => void;
+  child: Child;
+  onUpdate: (updatedChild: Child) => void;
 }
 
 const AcademicInformation = ({
-  info,
+  child,
   onUpdate,
 }: AcademicInformationProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const handleSave = (updatedInfo: AcademicInformationType) => {
-    onUpdate(updatedInfo);
+  const handleSave = (updatedChild: Child) => {
+    onUpdate(updatedChild);
     setShowEditModal(false);
   };
 
@@ -37,7 +38,6 @@ const AcademicInformation = ({
             </h2>
           </div>
 
-          {/* Edit Button */}
           <button
             type="button"
             onClick={() => setShowEditModal(true)}
@@ -57,7 +57,7 @@ const AcademicInformation = ({
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.className}
+              {child.grade?.name ?? "Not assigned"}
             </p>
           </div>
 
@@ -68,7 +68,7 @@ const AcademicInformation = ({
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.branch}
+              {child.branch?.name ?? "Not assigned"}
             </p>
           </div>
 
@@ -79,7 +79,9 @@ const AcademicInformation = ({
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.dateJoined}
+              {child.createdAt
+                ? new Date(child.createdAt).toLocaleDateString()
+                : "Not available"}
             </p>
           </div>
 
@@ -89,14 +91,8 @@ const AcademicInformation = ({
               Baptized
             </p>
 
-            <span
-              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                info.baptized === "Yes"
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                  : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-              }`}
-            >
-              {info.baptized}
+            <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+              Not available
             </span>
           </div>
 
@@ -107,7 +103,7 @@ const AcademicInformation = ({
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {info.baptismDate || "Not baptized"}
+              Not available
             </p>
           </div>
         </div>
@@ -116,7 +112,7 @@ const AcademicInformation = ({
       {/* Edit Modal */}
       {showEditModal && (
         <EditAcademicInformationModal
-          info={info}
+          child={child}
           onClose={() => setShowEditModal(false)}
           onSave={handleSave}
         />

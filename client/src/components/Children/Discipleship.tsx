@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Award,
   BookOpen,
+  CheckCircle2,
   Heart,
+  Pencil,
+  Plus,
   Target,
   UserRound,
-  Plus,
-  Pencil,
+  X,
 } from "lucide-react";
 
 import AddDiscipleshipModal from "./AddDiscipleshipModal";
@@ -14,15 +16,19 @@ import EditDiscipleshipModal from "./EditDiscipleshipModal";
 import EditSpiritualDevelopmentModal from "./EditSpiritualDevelopmentModal";
 import DiscipleshipMilestones from "./DiscipleshipMilestones";
 
-export interface Milestone {
-  id: number;
-  title: string;
-  description: string;
-  date: string;
-  completed: boolean;
-  type: string;
-  mentor: string;
-  notes: string;
+import {
+  createDiscipleshipRecord,
+  deleteDiscipleshipRecord,
+  getChildDiscipleshipRecords,
+  getSpiritualDevelopment,
+  updateDiscipleshipRecord,
+  updateSpiritualDevelopment,
+  type CreateDiscipleshipData,
+  type DiscipleshipRecord,
+} from "../../services/discipleshipService";
+
+interface DiscipleshipProps {
+  childId: string;
 }
 
 export interface SpiritualDevelopment {
@@ -31,63 +37,20 @@ export interface SpiritualDevelopment {
   christianCharacter: number;
 }
 
-const Discipleship = () => {
+type ToastType = "success" | "error";
+
+interface Toast {
+  id: number;
+  type: ToastType;
+  message: string;
+}
+
+const Discipleship = ({ childId }: DiscipleshipProps) => {
   // =====================================================
-  // DISCIPLESHIP MILESTONES
+  // DISCIPLESHIP RECORDS
   // =====================================================
 
-  const [milestones, setMilestones] = useState<Milestone[]>([
-    {
-      id: 1,
-      title: "Salvation",
-      description:
-        "Child has made a personal commitment to follow Christ.",
-      date: "June 15, 2024",
-      completed: true,
-      type: "Milestone",
-      mentor: "David Kamau",
-      notes: "",
-    },
-    {
-      id: 2,
-      title: "Bible Basics",
-      description:
-        "Completed the introductory Bible study lessons.",
-      date: "August 20, 2024",
-      completed: true,
-      type: "Bible Lesson",
-      mentor: "David Kamau",
-      notes: "",
-    },
-    {
-      id: 3,
-      title: "Prayer Life",
-      description:
-        "Learning and developing a consistent prayer routine.",
-      date: "July 12, 2026",
-      completed: true,
-      type: "Spiritual Growth",
-      mentor: "David Kamau",
-      notes: "",
-    },
-    {
-      id: 4,
-      title: "Serving Others",
-      description:
-        "Participating in church service and community activities.",
-      date: "In Progress",
-      completed: false,
-      type: "Service",
-      mentor: "David Kamau",
-      notes: "",
-    },
-  ]);
-
-  // =====================================================
-  // BIBLE LESSONS
-  // =====================================================
-
-  const [bibleLessons, setBibleLessons] = useState(18);
+  const [milestones, setMilestones] = useState<DiscipleshipRecord[]>([]);
 
   // =====================================================
   // SPIRITUAL DEVELOPMENT
@@ -95,10 +58,54 @@ const Discipleship = () => {
 
   const [spiritualDevelopment, setSpiritualDevelopment] =
     useState<SpiritualDevelopment>({
-      bibleKnowledge: 80,
-      prayerLife: 70,
-      christianCharacter: 85,
+      bibleKnowledge: 0,
+      prayerLife: 0,
+      christianCharacter: 0,
     });
+
+  // =====================================================
+  // LOADING / ERROR
+  // =====================================================
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // =====================================================
+  // ACTION STATE
+  // =====================================================
+
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState("");
+
+  // =====================================================
+  // TOAST STATE
+  // =====================================================
+
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [toastCounter, setToastCounter] = useState(0);
+
+  const showToast = (type: ToastType, message: string) => {
+    const id = toastCounter + 1;
+
+    setToastCounter(id);
+
+    setToasts((previous) => [
+      ...previous,
+      {
+        id,
+        type,
+        message,
+      },
+    ]);
+
+    window.setTimeout(() => {
+      setToasts((previous) => previous.filter((toast) => toast.id !== id));
+    }, 3500);
+  };
+
+  const removeToast = (id: number) => {
+    setToasts((previous) => previous.filter((toast) => toast.id !== id));
+  };
 
   // =====================================================
   // MODAL STATE
@@ -106,136 +113,217 @@ const Discipleship = () => {
 
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const [showEditModal, setShowEditModal] =
-    useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  const [showDevelopmentModal, setShowDevelopmentModal] =
-    useState(false);
+  const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
 
   const [editingMilestone, setEditingMilestone] =
-    useState<Milestone | null>(null);
+    useState<DiscipleshipRecord | null>(null);
+
+  // =====================================================
+  // LOAD DISCIPLESHIP DATA
+  // =====================================================
+
+  useEffect(() => {
+    const loadDiscipleshipData = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const [records, development] = await Promise.all([
+          getChildDiscipleshipRecords(childId),
+          getSpiritualDevelopment(childId),
+        ]);
+
+        setMilestones(records);
+
+        if (development) {
+          setSpiritualDevelopment({
+            bibleKnowledge: development.bibleKnowledge,
+            prayerLife: development.prayerLife,
+            christianCharacter: development.christianCharacter,
+          });
+        } else {
+          setSpiritualDevelopment({
+            bibleKnowledge: 0,
+            prayerLife: 0,
+            christianCharacter: 0,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load discipleship data:", error);
+
+        setError(
+          "Failed to load discipleship information. Please make sure the backend server is running.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (childId) {
+      loadDiscipleshipData();
+    }
+  }, [childId]);
 
   // =====================================================
   // CALCULATED VALUES
   // =====================================================
 
-  const completedMilestones = milestones.filter(
-    (milestone) => milestone.completed
-  ).length;
+  const completedMilestones = useMemo(
+    () => milestones.filter((milestone) => milestone.completed).length,
+    [milestones],
+  );
 
   const totalMilestones = milestones.length;
 
   const discipleshipProgress =
     totalMilestones === 0
       ? 0
-      : Math.round(
-          (completedMilestones / totalMilestones) * 100
-        );
+      : Math.round((completedMilestones / totalMilestones) * 100);
 
-  // =====================================================
-  // ADD RECORD
-  // =====================================================
+  const bibleLessons = useMemo(
+    () =>
+      milestones.filter(
+        (milestone) => milestone.type === "Bible Lesson" && milestone.completed,
+      ).length,
+    [milestones],
+  );
 
-  const handleAddRecord = (newMilestone: Milestone) => {
-    setMilestones((previous) => [
-      ...previous,
-      newMilestone,
-    ]);
+  const mentor = useMemo(() => {
+    const latestMentoredRecord = milestones.find((milestone) =>
+      milestone.mentor?.trim(),
+    );
 
-    if (
-      newMilestone.type === "Bible Lesson" &&
-      newMilestone.completed
-    ) {
-      setBibleLessons((previous) => previous + 1);
-    }
-
-    setShowAddModal(false);
-  };
+    return latestMentoredRecord?.mentor || "Not assigned";
+  }, [milestones]);
 
   // =====================================================
   // OPEN EDIT MODAL
   // =====================================================
 
-  const handleOpenEdit = (milestone: Milestone) => {
+  const handleOpenEdit = (milestone: DiscipleshipRecord) => {
+    if (actionLoading) return;
+
     setEditingMilestone(milestone);
     setShowEditModal(true);
   };
 
   // =====================================================
-  // EDIT RECORD
+  // ADD DISCIPLESHIP RECORD
   // =====================================================
 
-  const handleEditRecord = (
-    updatedMilestone: Milestone
-  ) => {
-    if (!editingMilestone) return;
+  const handleAddRecord = async (data: CreateDiscipleshipData) => {
+    if (actionLoading) return;
 
-    const previousWasBibleLesson =
-      editingMilestone.type === "Bible Lesson" &&
-      editingMilestone.completed;
+    try {
+      setActionLoading(true);
+      setActionError("");
 
-    const updatedIsBibleLesson =
-      updatedMilestone.type === "Bible Lesson" &&
-      updatedMilestone.completed;
+      const createdRecord = await createDiscipleshipRecord(childId, data);
 
-    setMilestones((previous) =>
-      previous.map((milestone) =>
-        milestone.id === updatedMilestone.id
-          ? updatedMilestone
-          : milestone
-      )
-    );
+      setMilestones((previous) => [createdRecord, ...previous]);
 
-    // Update Bible lesson count if the record
-    // changes between Bible Lesson/completed states.
-    if (
-      !previousWasBibleLesson &&
-      updatedIsBibleLesson
-    ) {
-      setBibleLessons((previous) => previous + 1);
+      setShowAddModal(false);
+
+      showToast("success", "Discipleship record added successfully.");
+    } catch (error) {
+      console.error("Failed to create discipleship record:", error);
+
+      const message =
+        "Failed to create the discipleship record. Please try again.";
+
+      setActionError(message);
+      showToast("error", message);
+    } finally {
+      setActionLoading(false);
     }
-
-    if (
-      previousWasBibleLesson &&
-      !updatedIsBibleLesson
-    ) {
-      setBibleLessons((previous) =>
-        Math.max(0, previous - 1)
-      );
-    }
-
-    setEditingMilestone(null);
-    setShowEditModal(false);
   };
 
   // =====================================================
-  // DELETE RECORD
+  // EDIT DISCIPLESHIP RECORD
   // =====================================================
 
-  const handleDeleteRecord = (id: number) => {
-    const milestone = milestones.find(
-      (item) => item.id === id
-    );
+  const handleEditRecord = async (updatedMilestone: DiscipleshipRecord) => {
+    if (actionLoading) return;
+
+    try {
+      setActionLoading(true);
+      setActionError("");
+
+      const updatedRecord = await updateDiscipleshipRecord(
+        childId,
+        updatedMilestone.id,
+        {
+          type: updatedMilestone.type,
+          title: updatedMilestone.title,
+          description: updatedMilestone.description,
+          date: updatedMilestone.date,
+          completed: updatedMilestone.completed,
+          mentor: updatedMilestone.mentor,
+          notes: updatedMilestone.notes,
+        },
+      );
+
+      setMilestones((previous) =>
+        previous.map((milestone) =>
+          milestone.id === updatedRecord.id ? updatedRecord : milestone,
+        ),
+      );
+
+      setEditingMilestone(null);
+      setShowEditModal(false);
+
+      showToast("success", "Discipleship record updated successfully.");
+    } catch (error) {
+      console.error("Failed to update discipleship record:", error);
+
+      const message =
+        "Failed to update the discipleship record. Please try again.";
+
+      setActionError(message);
+      showToast("error", message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // =====================================================
+  // DELETE DISCIPLESHIP RECORD
+  // =====================================================
+
+  const handleDeleteRecord = async (id: string) => {
+    if (actionLoading) return;
+
+    const milestone = milestones.find((item) => item.id === id);
 
     if (!milestone) return;
 
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${milestone.title}"?`
+      `Are you sure you want to delete "${milestone.title}"?`,
     );
 
     if (!confirmed) return;
 
-    setMilestones((previous) =>
-      previous.filter((item) => item.id !== id)
-    );
+    try {
+      setActionLoading(true);
+      setActionError("");
 
-    if (
-      milestone.type === "Bible Lesson" &&
-      milestone.completed
-    ) {
-      setBibleLessons((previous) =>
-        Math.max(0, previous - 1)
-      );
+      await deleteDiscipleshipRecord(childId, id);
+
+      setMilestones((previous) => previous.filter((item) => item.id !== id));
+
+      showToast("success", "Discipleship record deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete discipleship record:", error);
+
+      const message =
+        "Failed to delete the discipleship record. Please try again.";
+
+      setActionError(message);
+      showToast("error", message);
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -243,16 +331,139 @@ const Discipleship = () => {
   // UPDATE SPIRITUAL DEVELOPMENT
   // =====================================================
 
-  const handleUpdateDevelopment = (
-    updatedDevelopment: SpiritualDevelopment
+  const handleUpdateDevelopment = async (
+    updatedDevelopment: SpiritualDevelopment,
   ) => {
-    setSpiritualDevelopment(updatedDevelopment);
-    setShowDevelopmentModal(false);
+    if (actionLoading) return;
+
+    try {
+      setActionLoading(true);
+      setActionError("");
+
+      const savedDevelopment = await updateSpiritualDevelopment(childId, {
+        bibleKnowledge: updatedDevelopment.bibleKnowledge,
+        prayerLife: updatedDevelopment.prayerLife,
+        christianCharacter: updatedDevelopment.christianCharacter,
+      });
+
+      setSpiritualDevelopment({
+        bibleKnowledge: savedDevelopment.bibleKnowledge,
+        prayerLife: savedDevelopment.prayerLife,
+        christianCharacter: savedDevelopment.christianCharacter,
+      });
+
+      setShowDevelopmentModal(false);
+
+      showToast("success", "Spiritual development updated successfully.");
+    } catch (error) {
+      console.error("Failed to update spiritual development:", error);
+
+      const message =
+        "Failed to update spiritual development. Please try again.";
+
+      setActionError(message);
+      showToast("error", message);
+    } finally {
+      setActionLoading(false);
+    }
   };
+
+  // =====================================================
+  // LOADING
+  // =====================================================
+
+  if (loading) {
+    return (
+      <div className="mt-5 flex min-h-100 items-center justify-center rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex flex-col items-center text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-blue-600" />
+
+          <p className="mt-4 text-sm font-medium text-gray-700 dark:text-gray-200">
+            Loading discipleship information...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // =====================================================
+  // ERROR
+  // =====================================================
+
+  if (error) {
+    return (
+      <div className="mt-5 rounded-xl border border-red-200 bg-white p-8 text-center dark:border-red-800 dark:bg-gray-800">
+        <h3 className="text-sm font-semibold text-red-600 dark:text-red-400">
+          Unable to load discipleship information
+        </h3>
+
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{error}</p>
+      </div>
+    );
+  }
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <>
+      {/* =====================================================
+          TOAST NOTIFICATIONS
+      ===================================================== */}
+
+      <div className="fixed right-4 top-4 z-100 flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-lg backdrop-blur-sm ${
+              toast.type === "success"
+                ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/90 dark:text-green-300"
+                : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/90 dark:text-red-300"
+            }`}
+          >
+            <div className="mt-0.5 shrink-0">
+              {toast.type === "success" ? (
+                <CheckCircle2 size={18} />
+              ) : (
+                <Target size={18} />
+              )}
+            </div>
+
+            <p className="flex-1 text-sm font-medium">{toast.message}</p>
+
+            <button
+              type="button"
+              onClick={() => removeToast(toast.id)}
+              title="Dismiss notification"
+              className="shrink-0 rounded-md p-1 opacity-70 transition hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        ))}
+      </div>
+
       <div className="mt-5 space-y-5">
+        {/* =================================================
+            ACTION ERROR
+        ================================================= */}
+
+        {actionError && (
+          <div className="flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+            <span>{actionError}</span>
+
+            <button
+              type="button"
+              onClick={() => setActionError("")}
+              title="Dismiss error"
+              className="shrink-0 rounded p-0.5 hover:bg-red-100 dark:hover:bg-red-900/30"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        )}
+
         {/* =================================================
             HEADER
         ================================================= */}
@@ -264,15 +475,16 @@ const Discipleship = () => {
             </h2>
 
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Track the child's spiritual growth,
-              milestones, and discipleship journey.
+              Track the child's spiritual growth, milestones, and discipleship
+              journey.
             </p>
           </div>
 
           <button
             type="button"
+            disabled={actionLoading}
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 cursor-pointer"
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus size={17} />
             Add Record
@@ -372,7 +584,7 @@ const Discipleship = () => {
                 </p>
 
                 <p className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
-                  David Kamau
+                  {mentor}
                 </p>
               </div>
 
@@ -410,8 +622,9 @@ const Discipleship = () => {
 
               <button
                 type="button"
+                disabled={actionLoading}
                 onClick={() => setShowDevelopmentModal(true)}
-                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-blue-600 transition cursor-pointer hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-blue-600 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
               >
                 <Pencil size={14} />
                 Edit
@@ -517,7 +730,7 @@ const Discipleship = () => {
 
                 <div>
                   <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    David Kamau
+                    {mentor}
                   </h4>
 
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -525,17 +738,15 @@ const Discipleship = () => {
                   </p>
 
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Assigned: January 15, 2026
+                    Assigned through discipleship records
                   </p>
                 </div>
               </div>
 
               <div className="mt-5 rounded-lg bg-gray-50 p-4 dark:bg-gray-900/40">
                 <p className="text-xs leading-5 text-gray-600 dark:text-gray-300">
-                  David is responsible for guiding the
-                  child's spiritual development and
-                  following up on their discipleship
-                  progress.
+                  The mentor is responsible for guiding the child's spiritual
+                  development and following up on their discipleship progress.
                 </p>
               </div>
             </div>

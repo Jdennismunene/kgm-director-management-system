@@ -1,6 +1,10 @@
 import { Edit, FileText, Printer, UserX } from "lucide-react";
+
 import { useState } from "react";
-import type { Child } from "../../data/childrenData";
+
+import type { Child } from "../../services/childService";
+import { updateChildStatus } from "../../services/childService";
+
 import EditChildModal from "./EditChildModal";
 
 interface ChildRecordActionsProps {
@@ -13,24 +17,34 @@ const ChildRecordActions = ({
   onUpdateChild,
 }: ChildRecordActionsProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
 
   const handleSave = (updatedChild: Child) => {
     onUpdateChild(updatedChild);
     setShowEditModal(false);
   };
 
-  const handleDeactivate = () => {
-    const updatedChild: Child = {
-      ...child,
-      status: "Inactive",
-    };
+  const handleDeactivate = async () => {
+    if (child.status === "INACTIVE") {
+      return;
+    }
 
-    onUpdateChild(updatedChild);
+    try {
+      setDeactivating(true);
+
+      const updatedChild = await updateChildStatus(child.id, "INACTIVE");
+
+      onUpdateChild(updatedChild);
+    } catch (error) {
+      console.error("Failed to deactivate child:", error);
+    } finally {
+      setDeactivating(false);
+    }
   };
 
   const handlePrintProfile = () => {
-  window.print();
-};
+    window.print();
+  };
 
   return (
     <>
@@ -48,30 +62,38 @@ const ChildRecordActions = ({
 
         {/* Actions */}
         <div className="space-y-3 p-5">
-          {/* Edit Child */}
+          {/* Edit */}
           <button
             type="button"
             onClick={() => setShowEditModal(true)}
-            className="flex w-full items-center gap-3 rounded-lg border border-gray-200 
-            bg-white px-4 py-3 text-sm font-medium text-gray-700 
-            transition hover:bg-gray-50 
-            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 
-            dark:hover:bg-gray-700 cursor-pointer"
+            className="
+              flex w-full cursor-pointer items-center gap-3
+              rounded-lg border border-gray-200
+              bg-white px-4 py-3
+              text-sm font-medium text-gray-700
+              transition hover:bg-gray-50
+              dark:border-gray-600 dark:bg-gray-800
+              dark:text-gray-200 dark:hover:bg-gray-700
+            "
           >
             <Edit size={17} className="text-blue-600 dark:text-blue-400" />
 
             <span>Edit Child</span>
           </button>
 
-          {/* Print Profile */}
+          {/* Print */}
           <button
             type="button"
             onClick={handlePrintProfile}
-            className="flex w-full items-center gap-3 rounded-lg border border-gray-200 
-            bg-white px-4 py-3 text-sm font-medium text-gray-700 
-            transition hover:bg-gray-50 
-            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 
-            dark:hover:bg-gray-700 cursor-pointer"
+            className="
+              flex w-full cursor-pointer items-center gap-3
+              rounded-lg border border-gray-200
+              bg-white px-4 py-3
+              text-sm font-medium text-gray-700
+              transition hover:bg-gray-50
+              dark:border-gray-600 dark:bg-gray-800
+              dark:text-gray-200 dark:hover:bg-gray-700
+            "
           >
             <Printer size={17} className="text-gray-500 dark:text-gray-400" />
 
@@ -82,15 +104,29 @@ const ChildRecordActions = ({
           <button
             type="button"
             onClick={handleDeactivate}
-            className="flex w-full items-center gap-3 rounded-lg border border-red-200 
-            bg-red-50 px-4 py-3 text-sm font-medium text-red-600 
-            transition hover:bg-red-100 
-            dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400 
-            dark:hover:bg-red-900/30 cursor-pointer"
+            disabled={deactivating || child.status === "INACTIVE"}
+            className="
+              flex w-full cursor-pointer items-center gap-3
+              rounded-lg border border-red-200
+              bg-red-50 px-4 py-3
+              text-sm font-medium text-red-600
+              transition hover:bg-red-100
+              disabled:cursor-not-allowed disabled:opacity-50
+              dark:border-red-900/50
+              dark:bg-red-900/20
+              dark:text-red-400
+              dark:hover:bg-red-900/30
+            "
           >
             <UserX size={17} />
 
-            <span>Deactivate Child</span>
+            <span>
+              {deactivating
+                ? "Deactivating..."
+                : child.status === "INACTIVE"
+                  ? "Child Deactivated"
+                  : "Deactivate Child"}
+            </span>
           </button>
         </div>
       </div>

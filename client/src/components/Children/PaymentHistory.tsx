@@ -7,14 +7,14 @@ import {
   WalletCards,
 } from "lucide-react";
 
-import type { Payment } from "./Payments";
+import type { Payment } from "../../services/paymentService";
 
 interface PaymentHistoryProps {
   payments: Payment[];
   filter: "All" | "Paid" | "Pending";
   onFilterChange: (filter: "All" | "Paid" | "Pending") => void;
   onEdit: (payment: Payment) => void;
-  onDelete: (reference: string) => void;
+  onDelete: (paymentId: string) => void;
 }
 
 const PaymentHistory = ({
@@ -54,6 +54,24 @@ const PaymentHistory = ({
       default:
         return null;
     }
+  };
+
+  // =====================================================
+  // DATE DISPLAY
+  // =====================================================
+
+  const formatPaymentDate = (date: string) => {
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return parsedDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   return (
@@ -159,7 +177,7 @@ const PaymentHistory = ({
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {payments.map((payment) => (
                   <tr
-                    key={payment.reference}
+                    key={payment.id}
                     className="transition hover:bg-gray-50/70 dark:hover:bg-gray-700/20"
                   >
                     {/* Reference */}
@@ -182,7 +200,7 @@ const PaymentHistory = ({
 
                     <td className="whitespace-nowrap px-5 py-4">
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {payment.date}
+                        {formatPaymentDate(payment.date)}
                       </span>
                     </td>
 
@@ -235,7 +253,7 @@ const PaymentHistory = ({
 
                         <button
                           type="button"
-                          onClick={() => onDelete(payment.reference)}
+                          onClick={() => onDelete(payment.id)}
                           title="Delete payment"
                           className="rounded-md p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                         >
@@ -255,7 +273,7 @@ const PaymentHistory = ({
 
           <div className="divide-y divide-gray-100 md:hidden dark:divide-gray-700">
             {payments.map((payment) => (
-              <div key={payment.reference} className="p-5">
+              <div key={payment.id} className="p-5">
                 {/* Top */}
 
                 <div className="flex items-start justify-between gap-3">
@@ -299,7 +317,7 @@ const PaymentHistory = ({
                     </p>
 
                     <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                      {payment.date}
+                      {formatPaymentDate(payment.date)}
                     </p>
                   </div>
 
@@ -332,7 +350,7 @@ const PaymentHistory = ({
 
                   <button
                     type="button"
-                    onClick={() => onDelete(payment.reference)}
+                    onClick={() => onDelete(payment.id)}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-red-50 hover:text-red-600 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                   >
                     <Trash2 size={14} />

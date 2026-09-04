@@ -1,17 +1,26 @@
 import { useState } from "react";
 import { FileUp, Save, X } from "lucide-react";
-import type { DocumentRecord } from "./Documents";
+
+import type {
+  DocumentCategory,
+  DocumentRecord,
+} from "../../services/documentService";
 
 interface AddDocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (document: DocumentRecord) => void;
+  onUpload: (
+    name: string,
+    category: DocumentCategory,
+    file: File,
+  ) => Promise<void>;
 }
 
 const AddDocumentModal = ({
   isOpen,
   onClose,
-  onSave,
+  onUpload,
 }: AddDocumentModalProps) => {
   // =====================================================
   // FORM STATE
@@ -19,13 +28,19 @@ const AddDocumentModal = ({
 
   const [name, setName] = useState("");
 
-  const [category, setCategory] = useState<DocumentRecord["category"]>("Other");
+  const [category, setCategory] = useState<DocumentCategory>("OTHER");
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [fileName, setFileName] = useState("");
 
-  const [fileType, setFileType] = useState<DocumentRecord["type"]>("PDF");
+  const [fileType, setFileType] = useState<"PDF" | "JPG" | "PNG">("PDF");
 
   const [fileSize, setFileSize] = useState("");
+
+  const [isUploading, setIsUploading] = useState(false);
+
+  const [error, setError] = useState("");
 
   // =====================================================
   // RESET FORM
@@ -33,10 +48,13 @@ const AddDocumentModal = ({
 
   const resetForm = () => {
     setName("");
-    setCategory("Other");
+    setCategory("OTHER");
+    setSelectedFile(null);
     setFileName("");
     setFileType("PDF");
     setFileSize("");
+    setError("");
+    setIsUploading(false);
   };
 
   // =====================================================
@@ -44,6 +62,8 @@ const AddDocumentModal = ({
   // =====================================================
 
   const handleClose = () => {
+    if (isUploading) return;
+
     resetForm();
     onClose();
   };
@@ -57,16 +77,56 @@ const AddDocumentModal = ({
 
     if (!file) return;
 
-    setFileName(file.name);
+    setError("");
 
-    // Get file extension
-    const extension = file.name.split(".").pop()?.toUpperCase();
+    // -----------------------------------------------------
+    // Validate file size
+    // -----------------------------------------------------
 
-    if (extension === "PDF" || extension === "JPG" || extension === "PNG") {
-      setFileType(extension as DocumentRecord["type"]);
+    const maxSize = 10 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      setError("File size cannot exceed 10 MB.");
+      event.target.value = "";
+      return;
     }
 
-    // Convert bytes to KB / MB
+    // -----------------------------------------------------
+    // Validate MIME type
+    // -----------------------------------------------------
+
+    const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
+
+    if (!allowedMimeTypes.includes(file.type)) {
+      setError("Only PDF, JPG, and PNG files are allowed.");
+      event.target.value = "";
+      return;
+    }
+
+    // -----------------------------------------------------
+    // Store actual File object
+    // -----------------------------------------------------
+
+    setSelectedFile(file);
+
+    setFileName(file.name);
+
+    // -----------------------------------------------------
+    // Determine file type
+    // -----------------------------------------------------
+
+    if (file.type === "application/pdf") {
+      setFileType("PDF");
+    } else if (file.type === "image/jpeg") {
+      setFileType("JPG");
+    } else if (file.type === "image/png") {
+      setFileType("PNG");
+    }
+
+    // -----------------------------------------------------
+    // Convert file size
+    // -----------------------------------------------------
+
     const sizeInKB = file.size / 1024;
 
     if (sizeInKB >= 1024) {
@@ -75,44 +135,60 @@ const AddDocumentModal = ({
       setFileSize(`${Math.round(sizeInKB)} KB`);
     }
 
-    // Automatically use filename as document name
-    if (!name) {
+    // -----------------------------------------------------
+    // Automatically generate document name
+    // -----------------------------------------------------
+
+    if (!name.trim()) {
       const fileNameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
 
-      setName(
-        fileNameWithoutExtension
-          .replace(/[-_]/g, " ")
-          .replace(/\b\w/g, (letter) => letter.toUpperCase()),
-      );
+      const formattedName = fileNameWithoutExtension
+        .replace(/[-_]/g, " ")
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+      setName(formattedName);
     }
   };
 
   // =====================================================
-  // SAVE DOCUMENT
+  // SAVE / UPLOAD DOCUMENT
   // =====================================================
 
-  const handleSubmit = () => {
-    if (!name.trim() || !fileName || !fileSize) {
+  const handleSubmit = async () => {
+    if (!name.trim()) {
+      setError("Document name is required.");
       return;
     }
 
-    const newDocument: DocumentRecord = {
-      id: Date.now(),
-      name: name.trim(),
-      type: fileType,
-      category,
-      size: fileSize,
-      date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      fileName,
-    };
+    if (!selectedFile) {
+      setError("Please select a file.");
+      return;
+    }
 
-    onSave(newDocument);
+    try {
+      setIsUploading(true);
+      setError("");
 
-    resetForm();
+      // --------------------------------------------------
+      // Upload to backend
+      // --------------------------------------------------
+
+      await onUpload(name.trim(), category, selectedFile);
+
+      // --------------------------------------------------
+      // Close and reset after successful upload
+      // --------------------------------------------------
+
+      resetForm();
+    } catch (error) {
+      console.error("Document upload error:", error);
+
+      setError(
+        error instanceof Error ? error.message : "Failed to upload document.",
+      );
+
+      setIsUploading(false);
+    }
   };
 
   // =====================================================
@@ -148,7 +224,8 @@ const AddDocumentModal = ({
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+            disabled={isUploading}
+            className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700 dark:hover:text-gray-200"
           >
             <X size={20} />
           </button>
@@ -171,7 +248,8 @@ const AddDocumentModal = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Birth Certificate"
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
+              disabled={isUploading}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
             />
           </div>
 
@@ -184,22 +262,21 @@ const AddDocumentModal = ({
 
             <select
               value={category}
-              onChange={(e) =>
-                setCategory(e.target.value as DocumentRecord["category"])
-              }
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-900/30"
+              onChange={(e) => setCategory(e.target.value as DocumentCategory)}
+              disabled={isUploading}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-900/30"
             >
-              <option value="Identification">Identification</option>
+              <option value="IDENTIFICATION">Identification</option>
 
-              <option value="Consent">Consent</option>
+              <option value="CONSENT">Consent</option>
 
-              <option value="Photo">Photo</option>
+              <option value="PHOTO">Photo</option>
 
-              <option value="Medical">Medical</option>
+              <option value="MEDICAL">Medical</option>
 
-              <option value="Education">Education</option>
+              <option value="EDUCATION">Education</option>
 
-              <option value="Other">Other</option>
+              <option value="OTHER">Other</option>
             </select>
           </div>
 
@@ -219,7 +296,7 @@ const AddDocumentModal = ({
               </div>
 
               <p className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-200">
-                {fileName ? fileName : "Choose a file"}
+                {fileName || "Choose a file"}
               </p>
 
               <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
@@ -230,6 +307,7 @@ const AddDocumentModal = ({
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={handleFileChange}
+                disabled={isUploading}
                 className="hidden"
               />
             </label>
@@ -237,7 +315,7 @@ const AddDocumentModal = ({
 
           {/* File Information */}
 
-          {fileName && (
+          {selectedFile && (
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700/50">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -262,6 +340,14 @@ const AddDocumentModal = ({
               </div>
             </div>
           )}
+
+          {/* Error */}
+
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
+              {error}
+            </div>
+          )}
         </div>
 
         {/* =================================================
@@ -272,7 +358,8 @@ const AddDocumentModal = ({
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+            disabled={isUploading}
+            className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
           >
             Cancel
           </button>
@@ -280,11 +367,12 @@ const AddDocumentModal = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!name.trim() || !fileName || !fileSize}
+            disabled={isUploading || !name.trim() || !selectedFile}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Save size={16} />
-            Save Document
+
+            {isUploading ? "Uploading..." : "Save Document"}
           </button>
         </div>
       </div>

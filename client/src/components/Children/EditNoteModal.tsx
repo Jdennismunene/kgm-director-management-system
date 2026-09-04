@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
 import { Save, X } from "lucide-react";
-import type { Note } from "./Notes";
+
+import type {
+  Note,
+  NoteType,
+  UpdateNoteData,
+} from "../../services/noteService";
 
 interface EditNoteModalProps {
   isOpen: boolean;
   note: Note | null;
   onClose: () => void;
-  onSave: (updatedNote: Note) => void;
+  onSave: (updatedNote: UpdateNoteData) => void;
 }
 
 const EditNoteModal = ({
@@ -23,7 +28,7 @@ const EditNoteModal = ({
   const [content, setContent] = useState("");
   const [author, setAuthor] = useState("");
   const [role, setRole] = useState("");
-  const [type, setType] = useState<Note["type"]>("General");
+  const [type, setType] = useState<NoteType>("GENERAL");
   const [pinned, setPinned] = useState(false);
 
   // =====================================================
@@ -31,7 +36,9 @@ const EditNoteModal = ({
   // =====================================================
 
   useEffect(() => {
-    if (!note) return;
+    if (!note) {
+      return;
+    }
 
     setTitle(note.title);
     setContent(note.content);
@@ -46,18 +53,15 @@ const EditNoteModal = ({
   // =====================================================
 
   const handleSubmit = () => {
-    if (!note) return;
+    if (!note) {
+      return;
+    }
 
     if (!title.trim() || !content.trim() || !author.trim() || !role.trim()) {
       return;
     }
 
-    const updatedNote: Note = {
-      ...note,
-
-      // Keep the original ID
-      id: note.id,
-
+    const updatedNote: UpdateNoteData = {
       title: title.trim(),
       content: content.trim(),
       author: author.trim(),
@@ -121,7 +125,7 @@ const EditNoteModal = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Positive Participation"
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:ring-blue-900/30"
             />
           </div>
 
@@ -137,7 +141,7 @@ const EditNoteModal = ({
               onChange={(e) => setContent(e.target.value)}
               rows={4}
               placeholder="Write the observation or information here..."
-              className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm leading-5 text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
+              className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm leading-5 text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:ring-blue-900/30"
             />
           </div>
 
@@ -150,13 +154,13 @@ const EditNoteModal = ({
 
             <select
               value={type}
-              onChange={(e) => setType(e.target.value as Note["type"])}
+              onChange={(e) => setType(e.target.value as NoteType)}
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-900/30"
             >
-              <option value="General">General</option>
-              <option value="Prayer">Prayer</option>
-              <option value="Progress">Progress</option>
-              <option value="Follow-up">Follow-up</option>
+              <option value="GENERAL">General</option>
+              <option value="PRAYER">Prayer</option>
+              <option value="PROGRESS">Progress</option>
+              <option value="FOLLOW_UP">Follow-up</option>
             </select>
           </div>
 
@@ -175,7 +179,7 @@ const EditNoteModal = ({
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 placeholder="e.g. Sarah Wanjiku"
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:ring-blue-900/30"
               />
             </div>
 
@@ -191,7 +195,7 @@ const EditNoteModal = ({
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 placeholder="e.g. Sunday School Teacher"
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:ring-blue-900/30"
               />
             </div>
           </div>

@@ -1,4 +1,4 @@
-import type { Child } from "../../data/childrenData";
+import type { Child } from "../../services/childService";
 
 interface ChildProfilePrintProps {
   child: Child;
@@ -6,7 +6,7 @@ interface ChildProfilePrintProps {
 
 const ChildProfilePrint = ({ child }: ChildProfilePrintProps) => {
   return (
-    <div className="hidden print:block p-8 text-black">
+    <div className="hidden p-8 text-black print:block">
       <div className="mb-6 border-b border-gray-300 pb-4">
         <h1 className="text-2xl font-bold">Child Profile</h1>
 
@@ -25,23 +25,34 @@ const ChildProfilePrint = ({ child }: ChildProfilePrintProps) => {
         </p>
 
         <p>
-          <strong>Class:</strong> {child.className}
+          <strong>Grade:</strong> {child.grade?.name ?? "—"}
         </p>
 
         <p>
-          <strong>Branch:</strong> {child.branch}
+          <strong>Branch:</strong> {child.branch?.name ?? "—"}
         </p>
 
         <p>
-          <strong>Parent / Guardian:</strong> {child.parent}
+          <strong>Parent / Guardian:</strong> {child.parent?.name ?? "—"}
         </p>
 
         <p>
-          <strong>Phone:</strong> {child.phone}
+          <strong>Phone:</strong> {child.parent?.phone ?? "—"}
+        </p>
+
+        <p>
+          <strong>Email:</strong> {child.parent?.email ?? "—"}
         </p>
 
         <p>
           <strong>Status:</strong> {child.status}
+        </p>
+
+        <p>
+          <strong>Registered:</strong>{" "}
+          {child.createdAt
+            ? new Date(child.createdAt).toLocaleDateString()
+            : "—"}
         </p>
       </div>
 

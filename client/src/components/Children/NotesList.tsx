@@ -1,13 +1,79 @@
 import { FileText, Pencil, Pin, Trash2, UserRound } from "lucide-react";
 
-import type { Note } from "./Notes";
+import type { Note, NoteType } from "../../services/noteService";
 
 interface NotesListProps {
   notes: Note[];
   onEdit: (note: Note) => void;
-  onDelete: (id: number) => void;
-  onTogglePin: (id: number) => void;
+  onDelete: (id: string) => void;
+  onTogglePin: (id: string) => void;
 }
+
+// =====================================================
+// NOTE TYPE LABEL
+// =====================================================
+
+const getTypeLabel = (type: NoteType): string => {
+  switch (type) {
+    case "GENERAL":
+      return "General";
+
+    case "PRAYER":
+      return "Prayer";
+
+    case "PROGRESS":
+      return "Progress";
+
+    case "FOLLOW_UP":
+      return "Follow-up";
+
+    default:
+      return "General";
+  }
+};
+
+// =====================================================
+// NOTE TYPE COLORS
+// =====================================================
+
+const getTypeStyles = (type: NoteType): string => {
+  switch (type) {
+    case "PRAYER":
+      return "bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400";
+
+    case "PROGRESS":
+      return "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400";
+
+    case "FOLLOW_UP":
+      return "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400";
+
+    case "GENERAL":
+    default:
+      return "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400";
+  }
+};
+
+// =====================================================
+// DATE FORMATTER
+// =====================================================
+
+const formatNoteDate = (date: string): string => {
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
+  return parsedDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+// =====================================================
+// NOTES LIST
+// =====================================================
 
 const NotesList = ({
   notes,
@@ -15,27 +81,6 @@ const NotesList = ({
   onDelete,
   onTogglePin,
 }: NotesListProps) => {
-  // =====================================================
-  // NOTE TYPE COLORS
-  // =====================================================
-
-  const getTypeStyles = (type: Note["type"]) => {
-    switch (type) {
-      case "Prayer":
-        return "bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400";
-
-      case "Progress":
-        return "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400";
-
-      case "Follow-up":
-        return "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400";
-
-      case "General":
-      default:
-        return "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400";
-    }
-  };
-
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
       {/* =================================================
@@ -132,19 +177,25 @@ const NotesList = ({
                         note.type,
                       )}`}
                     >
-                      {note.type}
+                      {getTypeLabel(note.type)}
                     </span>
                   </div>
 
-                  {/* Note Content */}
+                  {/* =================================================
+                      NOTE CONTENT
+                  ================================================= */}
 
                   <p className="mt-2 max-w-4xl text-sm leading-6 text-gray-600 dark:text-gray-300">
                     {note.content}
                   </p>
 
-                  {/* Author Information */}
+                  {/* =================================================
+                      AUTHOR INFORMATION
+                  ================================================= */}
 
                   <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    {/* Author */}
+
                     <div className="flex items-center gap-2">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/30">
                         <UserRound
@@ -158,12 +209,16 @@ const NotesList = ({
                       </span>
                     </div>
 
+                    {/* Role */}
+
                     <span className="text-xs text-gray-400 dark:text-gray-500">
                       {note.role}
                     </span>
 
+                    {/* Date */}
+
                     <span className="text-xs text-gray-400 dark:text-gray-500">
-                      {note.date}
+                      {formatNoteDate(note.date)}
                     </span>
                   </div>
 
@@ -191,7 +246,9 @@ const NotesList = ({
                       {note.pinned ? "Unpin" : "Pin"}
                     </button>
 
-                    {/* Edit */}
+                    {/* =================================================
+                        EDIT
+                    ================================================= */}
 
                     <button
                       type="button"
@@ -202,7 +259,9 @@ const NotesList = ({
                       Edit
                     </button>
 
-                    {/* Delete */}
+                    {/* =================================================
+                        DELETE
+                    ================================================= */}
 
                     <button
                       type="button"

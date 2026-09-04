@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Save, X } from "lucide-react";
-import type { Milestone } from "./Discipleship";
+import type { CreateDiscipleshipData } from "../../services/discipleshipService";
 
 interface AddDiscipleshipModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (newMilestone: Milestone) => void;
+  onSave: (data: CreateDiscipleshipData) => void;
 }
 
 const AddDiscipleshipModal = ({
@@ -59,30 +59,26 @@ const AddDiscipleshipModal = ({
   // =====================================================
 
   const handleSubmit = () => {
-    if (!recordTitle.trim()) {
+    if (
+      !recordType.trim() ||
+      !recordTitle.trim() ||
+      !recordDescription.trim() ||
+      !recordMentor.trim()
+    ) {
       return;
     }
 
-    const formattedDate = recordDate
-      ? new Date(recordDate).toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        })
-      : "No date provided";
-
-    const newMilestone: Milestone = {
-      id: Date.now(),
-      title: recordTitle.trim(),
-      description: recordDescription.trim() || "No description provided.",
-      date: formattedDate,
-      completed: recordStatus === "Completed",
+    const data: CreateDiscipleshipData = {
       type: recordType,
+      title: recordTitle.trim(),
+      description: recordDescription.trim(),
+      date: recordDate || null,
+      completed: recordStatus === "Completed",
       mentor: recordMentor,
       notes: recordNotes.trim(),
     };
 
-    onSave(newMilestone);
+    onSave(data);
 
     resetForm();
   };

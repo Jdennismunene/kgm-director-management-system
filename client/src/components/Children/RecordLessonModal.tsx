@@ -2,7 +2,7 @@ import { X, Save, BookOpen } from "lucide-react";
 import { useState } from "react";
 
 export interface LessonRecord {
-  id: number;
+  id: string;
   title: string;
   category: string;
   date: string;
@@ -15,9 +15,14 @@ export interface LessonRecord {
 interface RecordLessonModalProps {
   onClose: () => void;
   onSave: (lesson: Omit<LessonRecord, "id">) => void;
+  saving?: boolean;
 }
 
-const RecordLessonModal = ({ onClose, onSave }: RecordLessonModalProps) => {
+const RecordLessonModal = ({
+  onClose,
+  onSave,
+  saving = false,
+}: RecordLessonModalProps) => {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Bible Study");
   const [date, setDate] = useState("");
@@ -247,10 +252,11 @@ const RecordLessonModal = ({ onClose, onSave }: RecordLessonModalProps) => {
 
             <button
               type="submit"
+              disabled={saving}
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               <Save size={16} />
-              Save Lesson
+              {saving ? "Saving..." : "Save Lesson"}
             </button>
           </div>
         </form>

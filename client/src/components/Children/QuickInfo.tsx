@@ -1,14 +1,24 @@
 import { CalendarDays, CircleCheck, Clock3, Info } from "lucide-react";
-import type { QuickInfo as QuickInfoType } from "../../data/quickInfo";
+
+import type { Child } from "../../services/childService";
 
 interface QuickInfoProps {
-  info: QuickInfoType;
+  child: Child;
 }
 
-const QuickInfo = ({ info }: QuickInfoProps) => {
+const QuickInfo = ({ child }: QuickInfoProps) => {
+  const status = child.status === "ACTIVE" ? "Active" : "Inactive";
+
+  const dateAdded = child.createdAt
+    ? new Date(child.createdAt).toLocaleDateString()
+    : "Not provided";
+
+  const lastUpdated = child.updatedAt
+    ? new Date(child.updatedAt).toLocaleDateString()
+    : "Not provided";
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-      {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
           <Info size={17} className="text-blue-600 dark:text-blue-400" />
@@ -19,26 +29,7 @@ const QuickInfo = ({ info }: QuickInfoProps) => {
         </h2>
       </div>
 
-      {/* Information */}
       <div className="space-y-5 px-5 pb-5">
-        {/* Membership Number */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <CalendarDays
-              size={16}
-              className="text-gray-400 dark:text-gray-500"
-            />
-
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              Membership No.
-            </span>
-          </div>
-
-          <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
-            {info.membershipNumber}
-          </span>
-        </div>
-
         {/* Status */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -51,12 +42,12 @@ const QuickInfo = ({ info }: QuickInfoProps) => {
 
           <span
             className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-              info.status === "Active"
+              status === "Active"
                 ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400"
                 : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
             }`}
           >
-            {info.status}
+            {status}
           </span>
         </div>
 
@@ -74,7 +65,7 @@ const QuickInfo = ({ info }: QuickInfoProps) => {
           </div>
 
           <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
-            {info.dateAdded}
+            {dateAdded}
           </span>
         </div>
 
@@ -89,7 +80,7 @@ const QuickInfo = ({ info }: QuickInfoProps) => {
           </div>
 
           <span className="text-xs font-medium text-gray-700 dark:text-gray-200">
-            {info.lastUpdated}
+            {lastUpdated}
           </span>
         </div>
       </div>

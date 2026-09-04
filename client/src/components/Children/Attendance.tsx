@@ -3,15 +3,26 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock3,
+  Loader2,
   Plus,
   XCircle,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 
 import AttendanceTable from "./AttendanceTable";
-import RecordAttendanceModal, {
+import RecordAttendanceModal from "./RecordAttendanceModal";
+
+import {
+  createAttendance,
+  getChildAttendance,
   type AttendanceRecord,
-} from "./RecordAttendanceModal";
+  type CreateAttendanceData,
+} from "../../services/attendanceService";
+
+interface AttendanceProps {
+  childId: string;
+}
 
 type AttendanceFilter =
   | "all"
@@ -20,72 +31,98 @@ type AttendanceFilter =
   | "last3Months"
   | "thisYear";
 
-const Attendance = () => {
+const Attendance = ({ childId }: AttendanceProps) => {
   // =====================================================
   // ATTENDANCE RECORDS
   // =====================================================
 
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
-  >([
-    {
-      id: 1,
-      date: "Aug 9, 2026",
-      program: "Sunday School",
-      status: "Present",
-      time: "9:00 AM",
-    },
-    {
-      id: 2,
-      date: "Aug 2, 2026",
-      program: "Sunday School",
-      status: "Present",
-      time: "9:05 AM",
-    },
-    {
-      id: 3,
-      date: "Jul 26, 2026",
-      program: "Sunday School",
-      status: "Absent",
-      time: "-",
-    },
-    {
-      id: 4,
-      date: "Jul 19, 2026",
-      program: "Sunday School",
-      status: "Present",
-      time: "9:02 AM",
-    },
-    {
-      id: 5,
-      date: "Jul 12, 2026",
-      program: "Sunday School",
-      status: "Late",
-      time: "9:25 AM",
-    },
-  ]);
+  >([]);
 
   // =====================================================
-  // STATE
+  // LOADING
+  // =====================================================
+
+  const [loading, setLoading] = useState(true);
+
+  // =====================================================
+  // ERROR
+  // =====================================================
+
+  const [error, setError] = useState("");
+
+  // =====================================================
+  // MODAL
   // =====================================================
 
   const [showModal, setShowModal] = useState(false);
 
+  // =====================================================
+  // FILTER
+  // =====================================================
+
   const [filter, setFilter] = useState<AttendanceFilter>("thisMonth");
 
   // =====================================================
-  // ADD ATTENDANCE RECORD
+  // LOAD ATTENDANCE
   // =====================================================
 
-  const handleAddAttendance = (record: Omit<AttendanceRecord, "id">) => {
-    const newRecord: AttendanceRecord = {
-      id: Date.now(),
-      ...record,
-    };
+  const loadAttendance = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-    setAttendanceRecords((previousRecords) => [newRecord, ...previousRecords]);
+      const records = await getChildAttendance(childId);
 
-    setShowModal(false);
+      setAttendanceRecords(records);
+    } catch (error) {
+      console.error("Failed to load attendance:", error);
+
+      setError(
+        "Failed to load attendance records. Please make sure the backend server is running.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =====================================================
+  // INITIAL LOAD
+  // =====================================================
+
+  useEffect(() => {
+    if (!childId) {
+      setError("Child ID is missing.");
+      setLoading(false);
+      return;
+    }
+
+    loadAttendance();
+  }, [childId]);
+
+  // =====================================================
+  // ADD ATTENDANCE
+  // =====================================================
+
+  const handleAddAttendance = async (
+    data: CreateAttendanceData,
+  ) => {
+    try {
+      setError("");
+
+      await createAttendance(data);
+
+      // Reload records from database
+      await loadAttendance();
+
+      // Close modal
+      setShowModal(false);
+    } catch (error) {
+      console.error("Failed to create attendance:", error);
+
+      throw error;
+    }
   };
 
   // =====================================================
@@ -93,33 +130,73 @@ const Attendance = () => {
   // =====================================================
 
   const filteredRecords = useMemo(() => {
-    switch (filter) {
-      case "thisMonth":
-        return attendanceRecords.filter((record) =>
-          record.date.includes("Aug 2026"),
-        );
+    const now = new Date();
 
-      case "lastMonth":
-        return attendanceRecords.filter((record) =>
-          record.date.includes("Jul 2026"),
-        );
+    return attendanceRecords.filter((record) => {
+      const recordDate = new Date(record.date);
 
-      case "last3Months":
-        return attendanceRecords.filter((record) =>
-          ["Aug 2026", "Jul 2026", "Jun 2026"].some((month) =>
-            record.date.includes(month),
-          ),
-        );
+      if (Number.isNaN(recordDate.getTime())) {
+        return false;
+      }
 
-      case "thisYear":
-        return attendanceRecords.filter((record) =>
-          record.date.includes("2026"),
-        );
+      switch (filter) {
+        // ===============================================
+        // THIS MONTH
+        // ===============================================
 
-      case "all":
-      default:
-        return attendanceRecords;
-    }
+        case "thisMonth":
+          return (
+            recordDate.getMonth() === now.getMonth() &&
+            recordDate.getFullYear() === now.getFullYear()
+          );
+
+        // ===============================================
+        // LAST MONTH
+        // ===============================================
+
+        case "lastMonth": {
+          const lastMonth = new Date(
+            now.getFullYear(),
+            now.getMonth() - 1,
+            1,
+          );
+
+          return (
+            recordDate.getMonth() === lastMonth.getMonth() &&
+            recordDate.getFullYear() === lastMonth.getFullYear()
+          );
+        }
+
+        // ===============================================
+        // LAST 3 MONTHS
+        // ===============================================
+
+        case "last3Months": {
+          const threeMonthsAgo = new Date(
+            now.getFullYear(),
+            now.getMonth() - 2,
+            1,
+          );
+
+          return recordDate >= threeMonthsAgo;
+        }
+
+        // ===============================================
+        // THIS YEAR
+        // ===============================================
+
+        case "thisYear":
+          return recordDate.getFullYear() === now.getFullYear();
+
+        // ===============================================
+        // ALL
+        // ===============================================
+
+        case "all":
+        default:
+          return true;
+      }
+    });
   }, [attendanceRecords, filter]);
 
   // =====================================================
@@ -129,23 +206,42 @@ const Attendance = () => {
   const totalSessions = attendanceRecords.length;
 
   const presentCount = attendanceRecords.filter(
-    (record) => record.status === "Present",
+    (record) => record.status === "PRESENT",
   ).length;
 
   const absentCount = attendanceRecords.filter(
-    (record) => record.status === "Absent",
+    (record) => record.status === "ABSENT",
   ).length;
 
   const lateCount = attendanceRecords.filter(
-    (record) => record.status === "Late",
+    (record) => record.status === "LATE",
   ).length;
 
   const attendanceRate =
-    totalSessions === 0 ? 0 : Math.round((presentCount / totalSessions) * 100);
+    totalSessions === 0
+      ? 0
+      : Math.round((presentCount / totalSessions) * 100);
 
   // =====================================================
-  // FILTER LABEL
+  // LOADING STATE
   // =====================================================
+
+  if (loading) {
+    return (
+      <div className="mt-5 flex min-h-100 items-center justify-center rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex flex-col items-center text-center">
+          <Loader2
+            size={30}
+            className="animate-spin text-blue-600 dark:text-blue-400"
+          />
+
+          <p className="mt-4 text-sm font-medium text-gray-700 dark:text-gray-200">
+            Loading attendance records...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // =====================================================
   // RENDER
@@ -168,7 +264,7 @@ const Attendance = () => {
           </p>
         </div>
 
-        {/* Record Attendance Button */}
+        {/* Record Attendance */}
 
         <button
           type="button"
@@ -176,9 +272,30 @@ const Attendance = () => {
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
         >
           <Plus size={17} />
+
           Record Attendance
         </button>
       </div>
+
+      {/* =================================================
+          ERROR
+      ================================================= */}
+
+      {error && (
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-800 dark:bg-red-900/20">
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {error}
+          </p>
+
+          <button
+            type="button"
+            onClick={loadAttendance}
+            className="text-xs font-semibold text-red-700 underline hover:no-underline dark:text-red-300"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* =================================================
           SUMMARY CARDS
@@ -258,7 +375,10 @@ const Attendance = () => {
             </div>
 
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/30">
-              <XCircle size={20} className="text-red-600 dark:text-red-400" />
+              <XCircle
+                size={20}
+                className="text-red-600 dark:text-red-400"
+              />
             </div>
           </div>
         </div>
@@ -352,6 +472,7 @@ const Attendance = () => {
 
       {showModal && (
         <RecordAttendanceModal
+          childId={childId}
           onClose={() => setShowModal(false)}
           onSave={handleAddAttendance}
         />

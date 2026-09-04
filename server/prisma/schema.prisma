@@ -1,13 +1,265 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Branch {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  children  Child[]
+}
+
+model Grade {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  status      Status   @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  children    Child[]
+}
+
+model Parent {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  children  Child[]
+}
+
+model Child {
+  id                   String                @id @default(cuid())
+  name                 String
+  age                  Int
+  status               Status                @default(ACTIVE)
+  parentId             String
+  gradeId              String
+  branchId             String
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  attendance           Attendance[]
+  branch               Branch                @relation(fields: [branchId], references: [id])
+  grade                Grade                 @relation(fields: [gradeId], references: [id])
+  parent               Parent                @relation(fields: [parentId], references: [id])
+  discipleshipRecords  DiscipleshipRecord[]
+  documents            Document[]
+  history              History[]
+  lessons              Lesson[]
+  notes                Note[]
+  payments             Payment[]
+  spiritualDevelopment SpiritualDevelopment?
+
+  @@index([parentId])
+  @@index([gradeId])
+  @@index([branchId])
+  @@index([status])
+}
+
+model Attendance {
+  id        String           @id @default(cuid())
+  date      DateTime
+  program   String
+  status    AttendanceStatus
+  time      String?
+  notes     String?
+  childId   String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  child     Child            @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@index([date])
+  @@index([status])
+}
+
+model Lesson {
+  id        String       @id @default(cuid())
+  title     String
+  category  String
+  date      DateTime
+  progress  Int
+  status    LessonStatus
+  score     Int?
+  teacher   String
+  childId   String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  child     Child        @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@index([date])
+}
+
+model DiscipleshipRecord {
+  id          String    @id @default(cuid())
+  type        String
+  title       String
+  description String
+  date        DateTime?
+  completed   Boolean   @default(false)
+  mentor      String
+  notes       String
+  childId     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  child       Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@index([date])
+  @@index([completed])
+}
+
+model SpiritualDevelopment {
+  id                 String   @id @default(cuid())
+  bibleKnowledge     Int      @default(0)
+  prayerLife         Int      @default(0)
+  christianCharacter Int      @default(0)
+  childId            String   @unique
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  child              Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  reference   String        @unique
+  description String
+  amount      Float
+  date        DateTime
+  method      PaymentMethod
+  status      PaymentStatus @default(PAID)
+  childId     String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  child       Child         @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@index([date])
+  @@index([status])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  author    String
+  role      String
+  date      DateTime @default(now())
+  type      NoteType @default(GENERAL)
+  pinned    Boolean  @default(false)
+  childId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  child     Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@index([date])
+  @@index([pinned])
+  @@index([type])
+}
+
+model Document {
+  id           String           @id @default(cuid())
+  name         String
+  type         DocumentType
+  category     DocumentCategory
+  fileName     String
+  originalName String
+  filePath     String
+  fileUrl      String
+  mimeType     String
+  size         Int
+  childId      String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  child        Child            @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@index([type])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model History {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  type        HistoryType
+  user        String
+  childId     String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  child       Child       @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum LessonStatus {
+  COMPLETED
+  IN_PROGRESS
+}
+
+enum PaymentMethod {
+  MPESA
+  CASH
+  BANK
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+}
+
+enum NoteType {
+  GENERAL
+  PRAYER
+  PROGRESS
+  FOLLOW_UP
+}
+
+enum DocumentType {
+  PDF
+  JPG
+  PNG
+}
+
+enum DocumentCategory {
+  IDENTIFICATION
+  CONSENT
+  PHOTO
+  MEDICAL
+  EDUCATION
+  OTHER
+}
+
+enum HistoryType {
+  PAYMENT
+  LESSON
+  NOTE
+  ATTENDANCE
+  DOCUMENT
+  PROFILE
+  DISCIPLESHIP
 }

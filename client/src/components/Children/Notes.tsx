@@ -1,72 +1,35 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Clock3, FileText, Pin, Plus } from "lucide-react";
 
 import AddNoteModal from "./AddNoteModal";
 import EditNoteModal from "./EditNoteModal";
 import NotesList from "./NotesList";
 
-export interface Note {
-  id: number;
-  title: string;
-  content: string;
-  author: string;
-  role: string;
-  date: string;
-  type: "General" | "Prayer" | "Progress" | "Follow-up";
-  pinned: boolean;
+import {
+  getNotes,
+  deleteNote,
+  toggleNotePin,
+  updateNote,
+  createNote,
+  type Note,
+  type CreateNoteData,
+  type UpdateNoteData,
+} from "../../services/noteService";
+
+interface NotesProps {
+  childId: string;
 }
 
-const Notes = () => {
+const Notes = ({ childId }: NotesProps) => {
   // =====================================================
   // NOTES DATA
   // =====================================================
 
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: 1,
-      title: "Positive Participation",
-      content:
-        "Brian participated actively during the Bible study session and demonstrated a good understanding of the lesson.",
-      author: "Sarah Wanjiku",
-      role: "Sunday School Teacher",
-      date: "Aug 9, 2026",
-      type: "General",
-      pinned: true,
-    },
-    {
-      id: 2,
-      title: "Prayer Request",
-      content:
-        "Parent requested that the ministry team remember the family in prayer during the coming week.",
-      author: "David Kamau",
-      role: "Children's Ministry Mentor",
-      date: "Aug 2, 2026",
-      type: "Prayer",
-      pinned: false,
-    },
-    {
-      id: 3,
-      title: "Academic Progress",
-      content:
-        "Child continues to show good progress in class and is becoming more confident when answering questions.",
-      author: "Mary Njeri",
-      role: "Class Teacher",
-      date: "Jul 26, 2026",
-      type: "Progress",
-      pinned: false,
-    },
-    {
-      id: 4,
-      title: "Follow-up Required",
-      content:
-        "Follow up with the parent regarding participation in the upcoming children's retreat.",
-      author: "David Kamau",
-      role: "Children's Ministry Mentor",
-      date: "Jul 19, 2026",
-      type: "Follow-up",
-      pinned: false,
-    },
-  ]);
+  const [notes, setNotes] = useState<Note[]>([]);
+
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState<string | null>(null);
 
   // =====================================================
   // MODAL STATE
@@ -79,6 +42,37 @@ const Notes = () => {
   const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   // =====================================================
+  // LOAD NOTES
+  // =====================================================
+
+  const loadNotes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const data = await getNotes(childId);
+
+      setNotes(data);
+    } catch (error) {
+      console.error("Failed to load notes:", error);
+
+      setError("Failed to load notes. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!childId) {
+      setNotes([]);
+      setLoading(false);
+      return;
+    }
+
+    loadNotes();
+  }, [childId]);
+
+  // =====================================================
   // SUMMARY DATA
   // =====================================================
 
@@ -89,18 +83,30 @@ const Notes = () => {
     [notes],
   );
 
-  // For now, "Recent Notes" represents the notes
-  // currently displayed in this child record.
+  /**
+   * For now, Recent Notes means all notes
+   * currently loaded for this child.
+   */
   const recentNotes = notes.length;
 
   // =====================================================
   // ADD NOTE
   // =====================================================
 
-  const handleAddNote = (newNote: Note) => {
-    setNotes((currentNotes) => [newNote, ...currentNotes]);
+  const handleAddNote = async (newNote: CreateNoteData) => {
+    try {
+      setError(null);
 
-    setShowAddModal(false);
+      const createdNote = await createNote(childId, newNote);
+
+      setNotes((currentNotes) => [createdNote, ...currentNotes]);
+
+      setShowAddModal(false);
+    } catch (error) {
+      console.error("Failed to create note:", error);
+
+      setError("Failed to create note. Please try again.");
+    }
   };
 
   // =====================================================
@@ -112,22 +118,34 @@ const Notes = () => {
     setShowEditModal(true);
   };
 
-  const handleEditNote = (updatedNote: Note) => {
-    setNotes((currentNotes) =>
-      currentNotes.map((note) =>
-        note.id === updatedNote.id ? updatedNote : note,
-      ),
-    );
+  const handleEditNote = async (updatedData: UpdateNoteData) => {
+    if (!editingNote) return;
 
-    setEditingNote(null);
-    setShowEditModal(false);
+    try {
+      setError(null);
+
+      const updatedNote = await updateNote(editingNote.id, updatedData);
+
+      setNotes((currentNotes) =>
+        currentNotes.map((note) =>
+          note.id === updatedNote.id ? updatedNote : note,
+        ),
+      );
+
+      setEditingNote(null);
+      setShowEditModal(false);
+    } catch (error) {
+      console.error("Failed to update note:", error);
+
+      setError("Failed to update note. Please try again.");
+    }
   };
 
   // =====================================================
   // DELETE NOTE
   // =====================================================
 
-  const handleDeleteNote = (id: number) => {
+  const handleDeleteNote = async (id: string) => {
     const note = notes.find((item) => item.id === id);
 
     if (!note) return;
@@ -138,24 +156,39 @@ const Notes = () => {
 
     if (!confirmed) return;
 
-    setNotes((currentNotes) => currentNotes.filter((item) => item.id !== id));
+    try {
+      setError(null);
+
+      await deleteNote(id);
+
+      setNotes((currentNotes) => currentNotes.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Failed to delete note:", error);
+
+      setError("Failed to delete note. Please try again.");
+    }
   };
 
   // =====================================================
   // PIN / UNPIN NOTE
   // =====================================================
 
-  const handleTogglePin = (id: number) => {
-    setNotes((currentNotes) =>
-      currentNotes.map((note) =>
-        note.id === id
-          ? {
-              ...note,
-              pinned: !note.pinned,
-            }
-          : note,
-      ),
-    );
+  const handleTogglePin = async (id: string) => {
+    try {
+      setError(null);
+
+      const updatedNote = await toggleNotePin(id);
+
+      setNotes((currentNotes) =>
+        currentNotes.map((note) =>
+          note.id === updatedNote.id ? updatedNote : note,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to update note pin:", error);
+
+      setError("Failed to update note pin status. Please try again.");
+    }
   };
 
   // =====================================================
@@ -189,6 +222,16 @@ const Notes = () => {
             Add Note
           </button>
         </div>
+
+        {/* =================================================
+            ERROR MESSAGE
+        ================================================= */}
+
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
+            {error}
+          </div>
+        )}
 
         {/* =================================================
             SUMMARY
@@ -269,12 +312,41 @@ const Notes = () => {
             NOTES LIST
         ================================================= */}
 
-        <NotesList
-          notes={notes}
-          onEdit={handleOpenEdit}
-          onDelete={handleDeleteNote}
-          onTogglePin={handleTogglePin}
-        />
+        {loading ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Loading notes...
+            </p>
+          </div>
+        ) : notes.length === 0 ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <FileText size={32} className="mx-auto text-gray-400" />
+
+            <h3 className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">
+              No notes yet
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Add the first note for this child.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              <Plus size={16} />
+              Add Note
+            </button>
+          </div>
+        ) : (
+          <NotesList
+            notes={notes}
+            onEdit={handleOpenEdit}
+            onDelete={handleDeleteNote}
+            onTogglePin={handleTogglePin}
+          />
+        )}
       </div>
 
       {/* =================================================

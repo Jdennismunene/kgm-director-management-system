@@ -7,14 +7,41 @@ import {
   Trash2,
 } from "lucide-react";
 
-import type { Milestone } from "./Discipleship";
+import type { DiscipleshipRecord } from "../../services/discipleshipService";
 
 interface DiscipleshipMilestonesProps {
-  milestones: Milestone[];
+  milestones: DiscipleshipRecord[];
   onAdd: () => void;
-  onEdit: (milestone: Milestone) => void;
-  onDelete: (id: number) => void;
+  onEdit: (milestone: DiscipleshipRecord) => void;
+  onDelete: (id: string) => void;
 }
+
+/**
+ * Formats the database date into a readable date.
+ *
+ * Example:
+ * 2026-08-31T00:00:00.000Z
+ * becomes:
+ * 31 Aug 2026
+ */
+const formatDate = (date: string | null) => {
+  if (!date) {
+    return "No date recorded";
+  }
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Invalid date";
+  }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(parsedDate);
+};
 
 const DiscipleshipMilestones = ({
   milestones,
@@ -165,17 +192,21 @@ const DiscipleshipMilestones = ({
                   </div>
                 </div>
 
-                {/* Description */}
+                {/* =================================================
+                    DESCRIPTION
+                ================================================= */}
 
                 <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
                   {milestone.description}
                 </p>
 
-                {/* Metadata */}
+                {/* =================================================
+                    METADATA
+                ================================================= */}
 
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
                   <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
-                    {milestone.date}
+                    {formatDate(milestone.date)}
                   </p>
 
                   {milestone.mentor && (
@@ -185,7 +216,9 @@ const DiscipleshipMilestones = ({
                   )}
                 </div>
 
-                {/* Notes */}
+                {/* =================================================
+                    NOTES
+                ================================================= */}
 
                 {milestone.notes && (
                   <div className="mt-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">

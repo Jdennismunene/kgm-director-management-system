@@ -1,17 +1,7 @@
 import { X, Save } from "lucide-react";
 import { useState } from "react";
 
-
-export interface ChildPersonalInfo {
-  fullName: string;
-  age: number;
-  address: string;
-  gender: string;
-  bloodGroup: string;
-  nationality: string;
-  dateOfBirth: string;
-  language: string;
-}
+import type { ChildPersonalInfo } from "../../data/childPersonalInfo";
 
 interface EditPersonalInformationModalProps {
   info: ChildPersonalInfo;
@@ -24,34 +14,50 @@ const EditPersonalInformationModal = ({
   onClose,
   onSave,
 }: EditPersonalInformationModalProps) => {
-  const [fullName, setFullName] = useState(info.fullName);
-  const [age, setAge] = useState(String(info.age));
-  const [address, setAddress] = useState(info.address);
-  const [gender, setGender] = useState(info.gender);
-  const [bloodGroup, setBloodGroup] = useState(info.bloodGroup);
-  const [nationality, setNationality] = useState(info.nationality);
-  const [dateOfBirth, setDateOfBirth] = useState(info.dateOfBirth);
-  const [language, setLanguage] = useState(info.language);
+  // =========================
+  // FORM STATE
+  // =========================
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [fullName, setFullName] = useState(info.fullName);
+  const [age, setAge] = useState(String(info.age ?? ""));
+
+  const [gender, setGender] = useState(info.gender ?? "");
+  const [dateOfBirth, setDateOfBirth] = useState(info.dateOfBirth ?? "");
+  const [bloodGroup, setBloodGroup] = useState(info.bloodGroup ?? "");
+  const [nationality, setNationality] = useState(info.nationality ?? "");
+  const [language, setLanguage] = useState(info.language ?? "");
+  const [address, setAddress] = useState(info.address ?? "");
+
+  // =========================
+  // SUBMIT
+  // =========================
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    onSave({
-      fullName,
+    const updatedInfo: ChildPersonalInfo = {
+      ...info,
+      fullName: fullName.trim(),
       age: Number(age),
-      address,
-      gender,
-      bloodGroup,
-      nationality,
-      dateOfBirth,
-      language,
-    });
-  };
 
+      gender: gender || null,
+      dateOfBirth: dateOfBirth || null,
+      bloodGroup: bloodGroup || null,
+
+      nationality: nationality.trim() || null,
+      language: language.trim() || null,
+      address: address.trim() || null,
+    };
+
+    onSave(updatedInfo);
+  };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 dark:bg-black/60">
       <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-gray-900">
-        {/* Header */}
+        {/* =========================
+            HEADER
+        ========================== */}
+
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5 dark:border-gray-700">
           <div>
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -72,7 +78,10 @@ const EditPersonalInformationModal = ({
           </button>
         </div>
 
-        {/* Form */}
+        {/* =========================
+            FORM
+        ========================== */}
+
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
             {/* Full Name */}
@@ -210,19 +219,22 @@ const EditPersonalInformationModal = ({
             </div>
           </div>
 
-          {/* Footer */}
+          {/* =========================
+              FOOTER
+          ========================== */}
+
           <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/70">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+              className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
             >
               <Save size={17} />
               Save Changes

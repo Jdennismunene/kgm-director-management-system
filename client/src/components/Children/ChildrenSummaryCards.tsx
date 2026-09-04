@@ -1,5 +1,6 @@
 import { Users, UserCheck, UserPlus, UserX, ChevronRight } from "lucide-react";
-import type { Child } from "../../data/childrenData";
+
+import type { Child } from "../../services/childService";
 
 interface ChildrenSummaryCardsProps {
   children: Child[];
@@ -16,35 +17,47 @@ const ChildrenSummaryCards = ({
   onViewInactive,
   onViewNew,
 }: ChildrenSummaryCardsProps) => {
-  // Total children
+  // ==========================================
+  // TOTAL CHILDREN
+  // ==========================================
   const totalChildren = children.length;
 
-  // Active children
+  // ==========================================
+  // ACTIVE CHILDREN
+  // ==========================================
   const activeChildren = children.filter(
-    (child) => child.status === "Active",
+    (child) => child.status === "ACTIVE",
   ).length;
 
-  // Inactive children
+  // ==========================================
+  // INACTIVE CHILDREN
+  // ==========================================
   const inactiveChildren = children.filter(
-    (child) => child.status === "Inactive",
+    (child) => child.status === "INACTIVE",
   ).length;
 
-  /*
-    Your current Child interface does not have a createdAt field.
+  // ==========================================
+  // NEW CHILDREN THIS MONTH
+  // ==========================================
+  const now = new Date();
 
-    For now, we use the first 24 children as the
-    "New This Month" value.
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
 
-    Once we add createdAt to childrenData.ts,
-    we can calculate this dynamically.
-  */
-  const newChildren = Math.min(24, totalChildren);
+  const newChildren = children.filter((child) => {
+    const createdDate = new Date(child.createdAt);
+
+    return (
+      createdDate.getMonth() === currentMonth &&
+      createdDate.getFullYear() === currentYear
+    );
+  }).length;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      {/* =========================
+      {/* ==========================================
           TOTAL CHILDREN
-      ========================== */}
+      ========================================== */}
       <div
         className="
           bg-white dark:bg-gray-900
@@ -86,9 +99,9 @@ const ChildrenSummaryCards = ({
         </button>
       </div>
 
-      {/* =========================
+      {/* ==========================================
           ACTIVE CHILDREN
-      ========================== */}
+      ========================================== */}
       <div
         className="
           bg-white dark:bg-gray-900
@@ -133,9 +146,9 @@ const ChildrenSummaryCards = ({
         </button>
       </div>
 
-      {/* =========================
+      {/* ==========================================
           NEW THIS MONTH
-      ========================== */}
+      ========================================== */}
       <div
         className="
           bg-white dark:bg-gray-900
@@ -180,9 +193,9 @@ const ChildrenSummaryCards = ({
         </button>
       </div>
 
-      {/* =========================
+      {/* ==========================================
           INACTIVE CHILDREN
-      ========================== */}
+      ========================================== */}
       <div
         className="
           bg-white dark:bg-gray-900

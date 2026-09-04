@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Save, X } from "lucide-react";
-import type { Payment } from "./Payments";
+
+import type { Payment, UpdatePaymentData } from "../../services/paymentService";
 
 interface EditPaymentModalProps {
   isOpen: boolean;
   payment: Payment | null;
   onClose: () => void;
-  onSave: (updatedPayment: Payment) => void;
+  onSave: (updatedPayment: UpdatePaymentData) => void;
 }
 
 const EditPaymentModal = ({
@@ -37,15 +38,25 @@ const EditPaymentModal = ({
     setMethod(payment.method);
     setStatus(payment.status);
 
-    /*
-      The existing payment date is stored as something like:
+    // Convert API ISO date into HTML date input format.
+    //
+    // Example:
+    // 2026-08-09T00:00:00.000Z
+    //
+    // becomes:
+    // 2026-08-09
 
-      Aug 9, 2026
+    const paymentDate = new Date(payment.date);
 
-      We display it directly as text in the form instead
-      of trying to convert it back into a date input.
-    */
-    setDate(payment.date);
+    if (!Number.isNaN(paymentDate.getTime())) {
+      const year = paymentDate.getFullYear();
+      const month = String(paymentDate.getMonth() + 1).padStart(2, "0");
+      const day = String(paymentDate.getDate()).padStart(2, "0");
+
+      setDate(`${year}-${month}-${day}`);
+    } else {
+      setDate("");
+    }
   }, [payment]);
 
   // =====================================================
@@ -55,24 +66,15 @@ const EditPaymentModal = ({
   const handleSubmit = () => {
     if (!payment) return;
 
-    if (!description.trim() || !amount) {
+    if (!description.trim() || !date || !amount || Number(amount) <= 0) {
       return;
     }
 
-    const updatedPayment: Payment = {
-      ...payment,
-
-      // Reference remains unchanged
-      reference: payment.reference,
-
+    const updatedPayment: UpdatePaymentData = {
       description: description.trim(),
-
-      date: date,
-
+      date,
       amount: Number(amount),
-
       method,
-
       status,
     };
 
@@ -178,17 +180,11 @@ const EditPaymentModal = ({
               Payment Date
             </label>
 
-            {/* 
-              Existing dates are stored as formatted strings,
-              so we keep the same format here.
-            */}
-
             <input
-              type="text"
+              type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              placeholder="e.g. Aug 9, 2026"
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:ring-blue-900/30"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-900/30"
             />
           </div>
 
@@ -248,7 +244,9 @@ const EditPaymentModal = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!description.trim() || !amount || Number(amount) <= 0}
+            disabled={
+              !description.trim() || !date || !amount || Number(amount) <= 0
+            }
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Save size={16} />

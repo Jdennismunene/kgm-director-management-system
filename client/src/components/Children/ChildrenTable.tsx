@@ -1,6 +1,6 @@
 import { Eye, Pencil, MoreVertical, SearchX } from "lucide-react";
-import type { Child } from "../../data/childrenData";
 import { useState } from "react";
+import type { Child } from "../../services/childService";
 
 interface ChildrenTableProps {
   children: Child[];
@@ -17,11 +17,10 @@ const ChildrenTable = ({
   onDeactivateChild,
   onDeleteChild,
 }: ChildrenTableProps) => {
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   return (
     <div className="mt-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden transition-colors">
-      {/* Table wrapper */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           {/* Table Header */}
@@ -68,7 +67,7 @@ const ChildrenTable = ({
           {/* Table Body */}
           <tbody>
             {children.length > 0 ? (
-              children.map((child) => (
+              children.map((child, index) => (
                 <tr
                   key={child.id}
                   className="
@@ -83,13 +82,12 @@ const ChildrenTable = ({
                 >
                   {/* Number */}
                   <td className="px-5 py-4 text-gray-700 dark:text-gray-300">
-                    {child.id}
+                    {index + 1}
                   </td>
 
                   {/* Child Name */}
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      {/* Avatar */}
                       <div
                         className="
                           w-9
@@ -110,7 +108,8 @@ const ChildrenTable = ({
                           .split(" ")
                           .map((name) => name[0])
                           .join("")
-                          .slice(0, 2)}
+                          .slice(0, 2)
+                          .toUpperCase()}
                       </div>
 
                       <span className="font-medium text-gray-800 dark:text-gray-100 whitespace-nowrap">
@@ -124,9 +123,9 @@ const ChildrenTable = ({
                     {child.age}
                   </td>
 
-                  {/* Class */}
+                  {/* Grade */}
                   <td className="px-5 py-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                    {child.className}
+                    {child.grade.name}
                   </td>
 
                   {/* Branch */}
@@ -150,23 +149,23 @@ const ChildrenTable = ({
                         whitespace-nowrap
                       "
                     >
-                      {child.branch}
+                      {child.branch.name}
                     </span>
                   </td>
 
                   {/* Parent */}
                   <td className="px-5 py-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                    {child.parent}
+                    {child.parent.name}
                   </td>
 
                   {/* Phone */}
                   <td className="px-5 py-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                    {child.phone}
+                    {child.parent.phone}
                   </td>
 
                   {/* Status */}
                   <td className="px-5 py-4">
-                    {child.status === "Active" ? (
+                    {child.status === "ACTIVE" ? (
                       <span
                         className="
                           inline-flex
@@ -292,7 +291,7 @@ const ChildrenTable = ({
                           <MoreVertical size={18} />
                         </button>
 
-                        {/* Dropdown Menu */}
+                        {/* Dropdown */}
                         {openMenuId === child.id && (
                           <div
                             className="
@@ -312,7 +311,7 @@ const ChildrenTable = ({
                               py-1
                             "
                           >
-                            {/* View Details */}
+                            {/* View */}
                             <button
                               type="button"
                               onClick={() => {
@@ -336,7 +335,7 @@ const ChildrenTable = ({
                               View Details
                             </button>
 
-                            {/* Edit Child */}
+                            {/* Edit */}
                             <button
                               type="button"
                               onClick={() => {
@@ -362,29 +361,54 @@ const ChildrenTable = ({
 
                             <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
 
-                            {/* Deactivate */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onDeactivateChild(child);
-                                setOpenMenuId(null);
-                              }}
-                              className="
-                                w-full
-                                px-4
-                                py-2.5
-                                text-left
-                                text-sm
-                                text-orange-600
-                                dark:text-orange-400
-                                hover:bg-orange-50
-                                dark:hover:bg-orange-950/40
-                                transition
-                                cursor-pointer
-                              "
-                            >
-                              Deactivate Child
-                            </button>
+                            {/* Activate / Deactivate */}
+                            {child.status === "ACTIVE" ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onDeactivateChild(child);
+                                  setOpenMenuId(null);
+                                }}
+                                className="
+                                  w-full
+                                  px-4
+                                  py-2.5
+                                  text-left
+                                  text-sm
+                                  text-orange-600
+                                  dark:text-orange-400
+                                  hover:bg-orange-50
+                                  dark:hover:bg-orange-950/40
+                                  transition
+                                  cursor-pointer
+                                "
+                              >
+                                Deactivate Child
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onDeactivateChild(child);
+                                  setOpenMenuId(null);
+                                }}
+                                className="
+                                  w-full
+                                  px-4
+                                  py-2.5
+                                  text-left
+                                  text-sm
+                                  text-green-600
+                                  dark:text-green-400
+                                  hover:bg-green-50
+                                  dark:hover:bg-green-950/40
+                                  transition
+                                  cursor-pointer
+                                "
+                              >
+                                Activate Child
+                              </button>
+                            )}
 
                             {/* Delete */}
                             <button
@@ -420,7 +444,6 @@ const ChildrenTable = ({
               <tr>
                 <td colSpan={9} className="px-5 py-14 text-center">
                   <div className="flex flex-col items-center justify-center">
-                    {/* Icon */}
                     <div
                       className="
                         w-14
@@ -438,7 +461,6 @@ const ChildrenTable = ({
                       <SearchX size={26} />
                     </div>
 
-                    {/* Message */}
                     <h3 className="mt-4 text-sm font-semibold text-gray-700 dark:text-gray-200">
                       No children found
                     </h3>

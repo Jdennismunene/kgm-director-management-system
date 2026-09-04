@@ -1,12 +1,42 @@
 import { CalendarDays } from "lucide-react";
 
-import type { AttendanceRecord } from "./RecordAttendanceModal";
+import type { AttendanceRecord } from "../../services/attendanceService";
 
 interface AttendanceTableProps {
   records: AttendanceRecord[];
 }
 
 const AttendanceTable = ({ records }: AttendanceTableProps) => {
+  // =====================================================
+  // FORMAT DATE
+  // =====================================================
+
+  const formatDate = (date: string) => {
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return parsedDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // =====================================================
+  // FORMAT TIME
+  // =====================================================
+
+  const formatTime = (time?: string | null) => {
+    if (!time) {
+      return "-";
+    }
+
+    return time;
+  };
+
   // =====================================================
   // EMPTY STATE
   // =====================================================
@@ -76,7 +106,7 @@ const AttendanceTable = ({ records }: AttendanceTableProps) => {
               {/* Date */}
 
               <td className="px-5 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                {record.date}
+                {formatDate(record.date)}
               </td>
 
               {/* Program */}
@@ -88,25 +118,25 @@ const AttendanceTable = ({ records }: AttendanceTableProps) => {
               {/* Time */}
 
               <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                {record.time}
+                {formatTime(record.time)}
               </td>
 
               {/* Status */}
 
               <td className="px-5 py-4">
-                {record.status === "Present" && (
+                {record.status === "PRESENT" && (
                   <span className="inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-600 dark:bg-green-900/30 dark:text-green-400">
                     Present
                   </span>
                 )}
 
-                {record.status === "Absent" && (
+                {record.status === "ABSENT" && (
                   <span className="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 dark:bg-red-900/30 dark:text-red-400">
                     Absent
                   </span>
                 )}
 
-                {record.status === "Late" && (
+                {record.status === "LATE" && (
                   <span className="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
                     Late
                   </span>

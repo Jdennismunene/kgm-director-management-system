@@ -29,6 +29,10 @@ const LessonTable = ({ lessons }: LessonTableProps) => {
     );
   }
 
+  // =====================================================
+  // TABLE
+  // =====================================================
+
   return (
     <div className="divide-y divide-gray-100 dark:divide-gray-700">
       {lessons.map((lesson) => (
@@ -42,6 +46,8 @@ const LessonTable = ({ lessons }: LessonTableProps) => {
             ================================================= */}
 
             <div className="flex min-w-0 items-start gap-3">
+              {/* Lesson Icon */}
+
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
                 <BookOpen
                   size={20}
@@ -49,15 +55,21 @@ const LessonTable = ({ lessons }: LessonTableProps) => {
                 />
               </div>
 
+              {/* Lesson Details */}
+
               <div className="min-w-0">
                 <h4 className="truncate text-sm font-semibold text-gray-900 dark:text-white">
                   {lesson.title}
                 </h4>
 
                 <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                  {/* Category */}
+
                   <span>{lesson.category}</span>
 
                   <span>•</span>
+
+                  {/* Date */}
 
                   <div className="flex items-center gap-1">
                     <CalendarDays size={12} />
@@ -66,6 +78,8 @@ const LessonTable = ({ lessons }: LessonTableProps) => {
                   </div>
 
                   <span>•</span>
+
+                  {/* Teacher */}
 
                   <div className="flex items-center gap-1">
                     <UserRound size={12} />
@@ -95,7 +109,7 @@ const LessonTable = ({ lessons }: LessonTableProps) => {
                 <div
                   className="h-full rounded-full bg-blue-600 transition-all dark:bg-blue-500"
                   style={{
-                    width: `${lesson.progress}%`,
+                    width: `${Math.min(Math.max(lesson.progress, 0), 100)}%`,
                   }}
                 />
               </div>
@@ -106,6 +120,8 @@ const LessonTable = ({ lessons }: LessonTableProps) => {
             ================================================= */}
 
             <div className="flex shrink-0 items-center gap-4">
+              {/* Status */}
+
               {lesson.status === "Completed" ? (
                 <span className="inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-600 dark:bg-green-900/30 dark:text-green-400">
                   Completed
@@ -115,6 +131,8 @@ const LessonTable = ({ lessons }: LessonTableProps) => {
                   In Progress
                 </span>
               )}
+
+              {/* Score */}
 
               <div className="min-w-11.25 text-right">
                 {lesson.score !== "-" ? (

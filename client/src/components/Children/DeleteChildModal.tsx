@@ -1,5 +1,5 @@
 import { AlertTriangle, X } from "lucide-react";
-import type { Child } from "../../data/childrenData";
+import type { Child } from "../../services/childService";
 
 interface DeleteChildModalProps {
   child: Child | null;
@@ -19,7 +19,9 @@ const DeleteChildModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 px-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-xl shadow-xl dark:shadow-black/40 overflow-hidden transition-colors">
-        {/* Header */}
+        {/* =========================
+            Header
+        ========================== */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
             Delete Child
@@ -28,6 +30,7 @@ const DeleteChildModal = ({
           <button
             type="button"
             onClick={onClose}
+            title="Close"
             className="
               w-8
               h-8
@@ -49,7 +52,9 @@ const DeleteChildModal = ({
           </button>
         </div>
 
-        {/* Content */}
+        {/* =========================
+            Content
+        ========================== */}
         <div className="px-6 py-6">
           <div className="flex items-start gap-4">
             {/* Warning Icon */}
@@ -91,7 +96,9 @@ const DeleteChildModal = ({
           </div>
         </div>
 
-        {/* Footer */}
+        {/* =========================
+            Footer
+        ========================== */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 dark:bg-gray-800/70 border-t border-gray-200 dark:border-gray-700">
           {/* Cancel */}
           <button

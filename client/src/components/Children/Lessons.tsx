@@ -5,10 +5,18 @@ import {
   GraduationCap,
   Plus,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import LessonTable from "./LessonTable";
-import RecordLessonModal, { type LessonRecord } from "./RecordLessonModal";
+import RecordLessonModal, {
+  type LessonRecord as ModalLessonRecord,
+} from "./RecordLessonModal";
+
+import {
+  createLesson,
+  getChildLessons,
+  type LessonRecord as ApiLessonRecord,
+} from "../../services/lessonService";
 
 type LessonFilter =
   | "all"
@@ -17,85 +25,102 @@ type LessonFilter =
   | "last3Months"
   | "thisYear";
 
-const Lessons = () => {
-  // =====================================================
-  // LESSON RECORDS
-  // =====================================================
+interface LessonsProps {
+  childId: string;
+}
 
-  const [lessons, setLessons] = useState<LessonRecord[]>([
-    {
-      id: 1,
-      title: "Knowing God",
-      category: "Bible Study",
-      date: "Aug 9, 2026",
-      progress: 100,
-      status: "Completed",
-      score: "92%",
-      teacher: "David Kamau",
-    },
-    {
-      id: 2,
-      title: "The Life of Jesus",
-      category: "Bible Study",
-      date: "Aug 2, 2026",
-      progress: 100,
-      status: "Completed",
-      score: "88%",
-      teacher: "Sarah Wanjiku",
-    },
-    {
-      id: 3,
-      title: "Prayer and Faith",
-      category: "Discipleship",
-      date: "Jul 26, 2026",
-      progress: 75,
-      status: "In Progress",
-      score: "-",
-      teacher: "David Kamau",
-    },
-    {
-      id: 4,
-      title: "Christian Character",
-      category: "Discipleship",
-      date: "Jul 19, 2026",
-      progress: 50,
-      status: "In Progress",
-      score: "-",
-      teacher: "Sarah Wanjiku",
-    },
-    {
-      id: 5,
-      title: "Serving Others",
-      category: "Christian Living",
-      date: "Jul 12, 2026",
-      progress: 100,
-      status: "Completed",
-      score: "95%",
-      teacher: "Mary Njeri",
-    },
-  ]);
-
+const Lessons = ({ childId }: LessonsProps) => {
   // =====================================================
   // STATE
   // =====================================================
+
+  const [lessons, setLessons] = useState<ApiLessonRecord[]>([]);
 
   const [showModal, setShowModal] = useState(false);
 
   const [filter, setFilter] = useState<LessonFilter>("thisMonth");
 
+  const [loading, setLoading] = useState(true);
+
+  const [saving, setSaving] = useState(false);
+
+  const [error, setError] = useState("");
+
+  // =====================================================
+  // FETCH LESSONS
+  // =====================================================
+
+  const loadLessons = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await getChildLessons(childId);
+
+      setLessons(data);
+    } catch (err) {
+      console.error("Error loading lessons:", err);
+
+      setError("Failed to load lesson records.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!childId) return;
+
+    loadLessons();
+  }, [childId]);
+
   // =====================================================
   // ADD LESSON
   // =====================================================
 
-  const handleAddLesson = (lesson: Omit<LessonRecord, "id">) => {
-    const newLesson: LessonRecord = {
-      id: Date.now(),
-      ...lesson,
-    };
+  const handleAddLesson = async (
+    lesson: Omit<ModalLessonRecord, "id">,
+  ) => {
+    try {
+      setSaving(true);
+      setError("");
 
-    setLessons((previousLessons) => [newLesson, ...previousLessons]);
+      const newLesson = await createLesson({
+        childId,
 
-    setShowModal(false);
+        title: lesson.title,
+
+        category: lesson.category,
+
+        date: lesson.date,
+
+        progress: lesson.progress,
+
+        status:
+          lesson.status === "Completed"
+            ? "COMPLETED"
+            : "IN_PROGRESS",
+
+        score:
+          lesson.status === "Completed" && lesson.score !== "-"
+            ? Number(lesson.score.replace("%", ""))
+            : null,
+
+        teacher: lesson.teacher,
+      });
+
+      setLessons((previousLessons) => [
+        newLesson,
+        ...previousLessons,
+      ]);
+
+      setShowModal(false);
+    } catch (err) {
+      console.error("Error creating lesson:", err);
+
+      setError("Failed to save lesson. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // =====================================================
@@ -103,27 +128,51 @@ const Lessons = () => {
   // =====================================================
 
   const filteredLessons = useMemo(() => {
-    switch (filter) {
-      case "thisMonth":
-        return lessons.filter((lesson) => lesson.date.includes("Aug 2026"));
+    const now = new Date();
 
-      case "lastMonth":
-        return lessons.filter((lesson) => lesson.date.includes("Jul 2026"));
+    return lessons.filter((lesson) => {
+      const lessonDate = new Date(lesson.date);
 
-      case "last3Months":
-        return lessons.filter((lesson) =>
-          ["Aug 2026", "Jul 2026", "Jun 2026"].some((month) =>
-            lesson.date.includes(month),
-          ),
-        );
+      switch (filter) {
+        case "thisMonth":
+          return (
+            lessonDate.getMonth() === now.getMonth() &&
+            lessonDate.getFullYear() === now.getFullYear()
+          );
 
-      case "thisYear":
-        return lessons.filter((lesson) => lesson.date.includes("2026"));
+        case "lastMonth": {
+          const lastMonth = new Date(
+            now.getFullYear(),
+            now.getMonth() - 1,
+            1,
+          );
 
-      case "all":
-      default:
-        return lessons;
-    }
+          return (
+            lessonDate.getMonth() === lastMonth.getMonth() &&
+            lessonDate.getFullYear() === lastMonth.getFullYear()
+          );
+        }
+
+        case "last3Months": {
+          const threeMonthsAgo = new Date(
+            now.getFullYear(),
+            now.getMonth() - 2,
+            1,
+          );
+
+          return lessonDate >= threeMonthsAgo;
+        }
+
+        case "thisYear":
+          return (
+            lessonDate.getFullYear() === now.getFullYear()
+          );
+
+        case "all":
+        default:
+          return true;
+      }
+    });
   }, [lessons, filter]);
 
   // =====================================================
@@ -133,26 +182,80 @@ const Lessons = () => {
   const totalLessons = lessons.length;
 
   const completedLessons = lessons.filter(
-    (lesson) => lesson.status === "Completed",
+    (lesson) => lesson.status === "COMPLETED",
   ).length;
 
   const inProgressLessons = lessons.filter(
-    (lesson) => lesson.status === "In Progress",
+    (lesson) => lesson.status === "IN_PROGRESS",
   ).length;
 
-  // Only completed lessons with an actual score
   const scoredLessons = lessons.filter(
-    (lesson) => lesson.status === "Completed" && lesson.score !== "-",
+    (lesson) =>
+      lesson.status === "COMPLETED" &&
+      lesson.score !== null,
   );
 
   const averageScore =
     scoredLessons.length === 0
       ? 0
       : Math.round(
-          scoredLessons.reduce((total, lesson) => {
-            return total + Number(lesson.score.replace("%", ""));
-          }, 0) / scoredLessons.length,
+          scoredLessons.reduce(
+            (total, lesson) =>
+              total + (lesson.score ?? 0),
+            0,
+          ) / scoredLessons.length,
         );
+
+  // =====================================================
+  // CONVERT API DATA TO TABLE DATA
+  // =====================================================
+
+  const tableLessons: ModalLessonRecord[] =
+    filteredLessons.map((lesson) => ({
+      id: lesson.id,
+
+      title: lesson.title,
+
+      category: lesson.category,
+
+      date: new Date(lesson.date).toLocaleDateString(
+        "en-US",
+        {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        },
+      ),
+
+      progress: lesson.progress,
+
+      status:
+        lesson.status === "COMPLETED"
+          ? "Completed"
+          : "In Progress",
+
+      score:
+        lesson.score !== null
+          ? `${lesson.score}%`
+          : "-",
+
+      teacher: lesson.teacher,
+    }));
+
+  // =====================================================
+  // LOADING STATE
+  // =====================================================
+
+  if (loading) {
+    return (
+      <div className="mt-5 flex items-center justify-center py-16">
+        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+          Loading lessons...
+        </div>
+      </div>
+    );
+  }
 
   // =====================================================
   // RENDER
@@ -171,11 +274,10 @@ const Lessons = () => {
           </h2>
 
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Track lessons, learning progress, and completed activities.
+            Track lessons, learning progress, and completed
+            activities.
           </p>
         </div>
-
-        {/* Record Lesson */}
 
         <button
           type="button"
@@ -186,6 +288,16 @@ const Lessons = () => {
           Record Lesson
         </button>
       </div>
+
+      {/* =================================================
+          ERROR MESSAGE
+      ================================================= */}
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400">
+          {error}
+        </div>
+      )}
 
       {/* =================================================
           SUMMARY CARDS
@@ -306,8 +418,6 @@ const Lessons = () => {
       ================================================= */}
 
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        {/* Header */}
-
         <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
@@ -328,22 +438,34 @@ const Lessons = () => {
             </div>
           </div>
 
-          {/* Filter */}
-
           <select
             value={filter}
-            onChange={(event) => setFilter(event.target.value as LessonFilter)}
+            onChange={(event) =>
+              setFilter(
+                event.target.value as LessonFilter,
+              )
+            }
             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 outline-none transition focus:border-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
           >
-            <option value="thisMonth">This Month</option>
+            <option value="thisMonth">
+              This Month
+            </option>
 
-            <option value="lastMonth">Last Month</option>
+            <option value="lastMonth">
+              Last Month
+            </option>
 
-            <option value="last3Months">Last 3 Months</option>
+            <option value="last3Months">
+              Last 3 Months
+            </option>
 
-            <option value="thisYear">This Year</option>
+            <option value="thisYear">
+              This Year
+            </option>
 
-            <option value="all">All Lessons</option>
+            <option value="all">
+              All Lessons
+            </option>
           </select>
         </div>
 
@@ -351,7 +473,7 @@ const Lessons = () => {
             LESSON TABLE
         ================================================= */}
 
-        <LessonTable lessons={filteredLessons} />
+        <LessonTable lessons={tableLessons} />
       </div>
 
       {/* =================================================
@@ -362,6 +484,7 @@ const Lessons = () => {
         <RecordLessonModal
           onClose={() => setShowModal(false)}
           onSave={handleAddLesson}
+          saving={saving}
         />
       )}
     </div>

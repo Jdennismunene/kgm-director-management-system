@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 export interface HistoryItem {
-  id: number;
+  id: string;
   title: string;
   description: string;
   date: string;

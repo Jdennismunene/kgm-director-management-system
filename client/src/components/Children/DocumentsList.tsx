@@ -8,15 +8,80 @@ import {
   Trash2,
 } from "lucide-react";
 
-import type { DocumentRecord } from "./Documents";
+import type { DocumentRecord } from "../../services/documentService";
 
 interface DocumentsListProps {
   documents: DocumentRecord[];
   onEdit: (document: DocumentRecord) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onView: (document: DocumentRecord) => void;
   onDownload: (document: DocumentRecord) => void;
 }
+
+// =====================================================
+// FORMAT FILE SIZE
+// =====================================================
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) {
+    return "0 Bytes";
+  }
+
+  const units = ["Bytes", "KB", "MB", "GB"];
+
+  const index = Math.floor(Math.log(bytes) / Math.log(1024));
+
+  const value = bytes / Math.pow(1024, index);
+
+  return `${value.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+};
+
+// =====================================================
+// FORMAT DATE
+// =====================================================
+
+const formatDocumentDate = (date: string): string => {
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Unknown date";
+  }
+
+  return parsedDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+// =====================================================
+// FORMAT CATEGORY FOR DISPLAY
+// =====================================================
+
+const formatCategory = (category: DocumentRecord["category"]): string => {
+  switch (category) {
+    case "IDENTIFICATION":
+      return "Identification";
+
+    case "CONSENT":
+      return "Consent";
+
+    case "PHOTO":
+      return "Photo";
+
+    case "MEDICAL":
+      return "Medical";
+
+    case "EDUCATION":
+      return "Education";
+
+    case "OTHER":
+      return "Other";
+
+    default:
+      return category;
+  }
+};
 
 const DocumentsList = ({
   documents,
@@ -187,20 +252,24 @@ const DocumentsList = ({
                     </span>
                   </div>
 
+                  {/* Original file name */}
+
                   <p className="mt-1 truncate text-xs text-gray-400 dark:text-gray-500">
-                    {document.fileName}
+                    {document.originalName}
                   </p>
 
+                  {/* Metadata */}
+
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                    <span>{document.category}</span>
+                    <span>{formatCategory(document.category)}</span>
 
                     <span>•</span>
 
-                    <span>{document.size}</span>
+                    <span>{formatFileSize(document.size)}</span>
 
                     <span>•</span>
 
-                    <span>{document.date}</span>
+                    <span>{formatDocumentDate(document.createdAt)}</span>
                   </div>
                 </div>
 
