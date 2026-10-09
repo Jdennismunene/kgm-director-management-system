@@ -7,7 +7,7 @@ import {
   Users,
 } from "lucide-react";
 import { useState } from "react";
-import type { Teacher } from "../../data/teachersData";
+import type { Teacher, UpdateTeacherData } from "../../services/teacherService";
 import { useTeachers } from "../../context/TeachersContext";
 import EditTeacherTeachingModal from "./EditTeacherTeachingModal";
 
@@ -23,12 +23,12 @@ const TeacherTeaching = ({ teacher }: TeacherTeachingProps) => {
   const teachingStats = [
     {
       label: "Assigned Grades",
-      value: teacher.grade.length,
+      value: teacher.grades.length,
       icon: GraduationCap,
     },
     {
       label: "Classes",
-      value: teacher.grade.length,
+      value: teacher.grades.length,
       icon: BookOpen,
     },
     {
@@ -38,7 +38,7 @@ const TeacherTeaching = ({ teacher }: TeacherTeachingProps) => {
     },
     {
       label: "Status",
-      value: teacher.status,
+      value: teacher.status === "ACTIVE" ? "Active" : "Inactive",
       icon: CheckCircle2,
     },
   ];
@@ -47,25 +47,26 @@ const TeacherTeaching = ({ teacher }: TeacherTeachingProps) => {
     {
       day: "Sunday",
       time: "8:00 AM - 10:00 AM",
-      className: teacher.grade[0] || "Not Assigned",
+      className: teacher.grades[0]?.name || "Not Assigned",
       subject: "Bible Study",
     },
     {
       day: "Sunday",
       time: "10:30 AM - 12:00 PM",
-      className: teacher.grade[1] || teacher.grade[0] || "Not Assigned",
+      className:
+        teacher.grades[1]?.name || teacher.grades[0]?.name || "Not Assigned",
       subject: "Sunday School",
     },
     {
       day: "Wednesday",
       time: "4:00 PM - 5:30 PM",
-      className: teacher.grade[0] || "Not Assigned",
+      className: teacher.grades[0]?.name || "Not Assigned",
       subject: "Bible Lesson",
     },
   ];
 
-  const handleUpdateTeacher = (updatedTeacher: Teacher) => {
-    updateTeacher(updatedTeacher);
+  const handleUpdateTeacher = async (id: string, data: UpdateTeacherData) => {
+    await updateTeacher(id, data);
     setShowEditModal(false);
   };
 
@@ -130,11 +131,11 @@ const TeacherTeaching = ({ teacher }: TeacherTeachingProps) => {
         </div>
 
         <div className="p-6">
-          {teacher.grade.length > 0 ? (
+          {teacher.grades.length > 0 ? (
             <div className="flex flex-wrap gap-3">
-              {teacher.grade.map((grade) => (
+              {teacher.grades.map((grade) => (
                 <div
-                  key={grade}
+                  key={grade.id}
                   className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-700/50"
                 >
                   <BookOpen
@@ -143,7 +144,7 @@ const TeacherTeaching = ({ teacher }: TeacherTeachingProps) => {
                   />
 
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    {grade}
+                    {grade.name}
                   </span>
                 </div>
               ))}

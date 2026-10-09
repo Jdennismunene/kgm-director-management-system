@@ -1,11 +1,11 @@
 import { Save, X } from "lucide-react";
 import { useState } from "react";
-import type { Teacher } from "../../data/teachersData";
+import type { Teacher, UpdateTeacherData } from "../../services/teacherService";
 
 interface EditTeacherPersonalInformationModalProps {
   teacher: Teacher;
   onClose: () => void;
-  onSave: (updatedTeacher: Teacher) => void;
+  onSave: (id: string, data: UpdateTeacherData) => Promise<void>;
 }
 
 const EditTeacherPersonalInformationModal = ({
@@ -16,19 +16,30 @@ const EditTeacherPersonalInformationModal = ({
   const [name, setName] = useState(teacher.name);
   const [email, setEmail] = useState(teacher.email);
   const [phone, setPhone] = useState(teacher.phone);
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const updatedTeacher: Teacher = {
-      ...teacher,
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-    };
+    if (!name.trim() || !email.trim() || !phone.trim()) {
+      return;
+    }
 
-    onSave(updatedTeacher);
-    onClose();
+    try {
+      setSaving(true);
+
+      await onSave(teacher.id, {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+      });
+
+      onClose();
+    } catch (error) {
+      console.error("Error updating teacher:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -49,7 +60,8 @@ const EditTeacherPersonalInformationModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+            disabled={saving}
+            className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700 dark:hover:text-gray-200"
           >
             <X size={20} />
           </button>
@@ -69,7 +81,8 @@ const EditTeacherPersonalInformationModal = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-[#365452] focus:ring-2 focus:ring-[#365452]/10 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                disabled={saving}
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-[#365452] focus:ring-2 focus:ring-[#365452]/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 placeholder="Enter teacher name"
               />
             </div>
@@ -85,7 +98,8 @@ const EditTeacherPersonalInformationModal = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-[#365452] focus:ring-2 focus:ring-[#365452]/10 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                disabled={saving}
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-[#365452] focus:ring-2 focus:ring-[#365452]/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 placeholder="Enter email address"
               />
             </div>
@@ -101,7 +115,8 @@ const EditTeacherPersonalInformationModal = ({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-[#365452] focus:ring-2 focus:ring-[#365452]/10 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                disabled={saving}
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-[#365452] focus:ring-2 focus:ring-[#365452]/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 placeholder="Enter phone number"
               />
             </div>
@@ -112,17 +127,20 @@ const EditTeacherPersonalInformationModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              disabled={saving}
+              className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-lg bg-[#365452] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#2c4543]"
+              disabled={saving}
+              className="flex items-center gap-2 rounded-lg bg-[#365452] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#2c4543] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Save size={17} />
-              Save Changes
+
+              {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

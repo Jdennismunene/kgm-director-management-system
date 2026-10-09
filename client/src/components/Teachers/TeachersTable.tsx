@@ -6,8 +6,14 @@ import {
   Trash2,
   UserRoundX,
 } from "lucide-react";
+
 import { useState } from "react";
-import type { Teacher } from "../../data/teachersData";
+
+import type { Teacher } from "../../services/teacherService";
+
+// =====================================================
+// PROPS
+// =====================================================
 
 interface TeachersTableProps {
   teachers: Teacher[];
@@ -16,13 +22,33 @@ interface TeachersTableProps {
   onDelete: (teacher: Teacher) => void;
 }
 
+// =====================================================
+// COMPONENT
+// =====================================================
+
 const TeachersTable = ({
   teachers,
   onView,
   onEdit,
   onDelete,
 }: TeachersTableProps) => {
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  // =====================================================
+  // DATE FORMATTER
+  // =====================================================
+
+  const formatJoinedDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-KE", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -89,7 +115,8 @@ const TeachersTable = ({
                           .split(" ")
                           .map((name) => name[0])
                           .join("")
-                          .slice(0, 2)}
+                          .slice(0, 2)
+                          .toUpperCase()}
                       </div>
 
                       <div>
@@ -98,7 +125,7 @@ const TeachersTable = ({
                         </p>
 
                         <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                          Teacher ID: #{String(teacher.id).padStart(4, "0")}
+                          Teacher ID: #{teacher.id}
                         </p>
                       </div>
                     </div>
@@ -107,14 +134,20 @@ const TeachersTable = ({
                   {/* Classes */}
                   <td className="px-5 py-4">
                     <div className="flex flex-wrap gap-1.5">
-                      {teacher.grade.map((className) => (
-                        <span
-                          key={className}
-                          className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-                        >
-                          {className}
+                      {teacher.grades.length > 0 ? (
+                        teacher.grades.map((grade) => (
+                          <span
+                            key={grade.id}
+                            className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                          >
+                            {grade.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                          No classes assigned
                         </span>
-                      ))}
+                      )}
                     </div>
                   </td>
 
@@ -132,18 +165,18 @@ const TeachersTable = ({
                   <td className="px-5 py-4">
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                        teacher.status === "Active"
+                        teacher.status === "ACTIVE"
                           ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                           : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                       }`}
                     >
-                      {teacher.status}
+                      {teacher.status === "ACTIVE" ? "Active" : "Inactive"}
                     </span>
                   </td>
 
                   {/* Joined Date */}
                   <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
-                    {teacher.joinedDate}
+                    {formatJoinedDate(teacher.joinedDate)}
                   </td>
 
                   {/* Actions */}
@@ -151,6 +184,7 @@ const TeachersTable = ({
                     <div className="flex items-center justify-end gap-1">
                       {/* View */}
                       <button
+                        type="button"
                         onClick={() => onView(teacher)}
                         title="View teacher"
                         className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-[#365452] dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-[#8eb0ac]"
@@ -160,6 +194,7 @@ const TeachersTable = ({
 
                       {/* Edit */}
                       <button
+                        type="button"
                         onClick={() => onEdit(teacher)}
                         title="Edit teacher"
                         className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-blue-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-blue-400"
@@ -169,6 +204,7 @@ const TeachersTable = ({
 
                       {/* Delete */}
                       <button
+                        type="button"
                         onClick={() => onDelete(teacher)}
                         title="Delete teacher"
                         className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-red-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-red-400"
@@ -179,6 +215,7 @@ const TeachersTable = ({
                       {/* More Options */}
                       <div className="relative">
                         <button
+                          type="button"
                           onClick={() =>
                             setOpenMenuId(
                               openMenuId === teacher.id ? null : teacher.id,
@@ -195,6 +232,7 @@ const TeachersTable = ({
                           <div className="absolute right-0 top-full z-30 mt-1 w-48 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                             {/* View */}
                             <button
+                              type="button"
                               onClick={() => {
                                 onView(teacher);
                                 setOpenMenuId(null);
@@ -207,6 +245,7 @@ const TeachersTable = ({
 
                             {/* Edit */}
                             <button
+                              type="button"
                               onClick={() => {
                                 onEdit(teacher);
                                 setOpenMenuId(null);
@@ -220,8 +259,9 @@ const TeachersTable = ({
                             <div className="my-1 border-t border-gray-100 dark:border-gray-700" />
 
                             {/* Activate / Deactivate */}
-                            {teacher.status === "Active" ? (
+                            {teacher.status === "ACTIVE" ? (
                               <button
+                                type="button"
                                 onClick={() => {
                                   console.log("Deactivate teacher:", teacher);
                                   setOpenMenuId(null);
@@ -233,6 +273,7 @@ const TeachersTable = ({
                               </button>
                             ) : (
                               <button
+                                type="button"
                                 onClick={() => {
                                   console.log("Activate teacher:", teacher);
                                   setOpenMenuId(null);
@@ -246,6 +287,7 @@ const TeachersTable = ({
 
                             {/* Delete */}
                             <button
+                              type="button"
                               onClick={() => {
                                 onDelete(teacher);
                                 setOpenMenuId(null);

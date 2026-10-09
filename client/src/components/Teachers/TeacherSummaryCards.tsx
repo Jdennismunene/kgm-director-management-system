@@ -1,23 +1,37 @@
 import { Users, UserCheck, UserX, BookOpen } from "lucide-react";
-import type { Teacher } from "../../data/teachersData";
+
+import type { Teacher } from "../../services/teacherService";
 
 interface TeacherSummaryCardsProps {
   teachers: Teacher[];
 }
 
 const TeacherSummaryCards = ({ teachers }: TeacherSummaryCardsProps) => {
+  // =====================================================
+  // TEACHER COUNTS
+  // =====================================================
+
   const totalTeachers = teachers.length;
 
   const activeTeachers = teachers.filter(
-    (teacher) => teacher.status === "Active",
+    (teacher) => teacher.status === "ACTIVE",
   ).length;
 
   const inactiveTeachers = teachers.filter(
-    (teacher) => teacher.status === "Inactive",
+    (teacher) => teacher.status === "INACTIVE",
   ).length;
 
-  const totalClasses = new Set(teachers.flatMap((teacher) => teacher.grade))
-    .size;
+  // =====================================================
+  // UNIQUE CLASSES
+  // =====================================================
+
+  const totalClasses = new Set(
+    teachers.flatMap((teacher) => teacher.grades.map((grade) => grade.id)),
+  ).size;
+
+  // =====================================================
+  // SUMMARY CARDS
+  // =====================================================
 
   const cards = [
     {
@@ -45,6 +59,10 @@ const TeacherSummaryCards = ({ teachers }: TeacherSummaryCardsProps) => {
       description: "Unique classes assigned",
     },
   ];
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

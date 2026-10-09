@@ -7,7 +7,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import type { Teacher } from "../../data/teachersData";
+import type { Teacher } from "../../services/teacherService";
 
 interface TeacherOverviewProps {
   teacher: Teacher;
@@ -32,7 +32,7 @@ const TeacherOverview = ({ teacher }: TeacherOverviewProps) => {
           </p>
 
           <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-            {teacher.status}
+            {teacher.status === "ACTIVE" ? "Active" : "Inactive"}
           </p>
         </div>
 
@@ -47,7 +47,7 @@ const TeacherOverview = ({ teacher }: TeacherOverviewProps) => {
           </p>
 
           <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-            {teacher.grade.length}
+            {teacher.grades.length}
           </p>
         </div>
 
@@ -63,7 +63,11 @@ const TeacherOverview = ({ teacher }: TeacherOverviewProps) => {
           <p className="text-sm text-gray-500 dark:text-gray-400">Joined On</p>
 
           <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-            {teacher.joinedDate}
+            {new Date(teacher.joinedDate).toLocaleDateString("en-KE", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })}
           </p>
         </div>
 
@@ -76,7 +80,7 @@ const TeacherOverview = ({ teacher }: TeacherOverviewProps) => {
           <p className="text-sm text-gray-500 dark:text-gray-400">Teacher ID</p>
 
           <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-            #{String(teacher.id).padStart(4, "0")}
+            #{teacher.id}
           </p>
         </div>
       </div>
@@ -145,7 +149,11 @@ const TeacherOverview = ({ teacher }: TeacherOverviewProps) => {
                 </p>
 
                 <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
-                  {teacher.joinedDate}
+                  {new Date(teacher.joinedDate).toLocaleDateString("en-KE", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
             </div>
@@ -169,14 +177,14 @@ const TeacherOverview = ({ teacher }: TeacherOverviewProps) => {
               Assigned Grades
             </p>
 
-            {teacher.grade.length > 0 ? (
+            {teacher.grades.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {teacher.grade.map((grade) => (
+                {teacher.grades.map((grade) => (
                   <span
-                    key={grade}
+                    key={grade.id}
                     className="rounded-lg bg-[#365452]/10 px-3 py-2 text-sm font-medium text-[#365452] dark:bg-[#8eb0ac]/10 dark:text-[#8eb0ac]"
                   >
-                    {grade}
+                    {grade.name}
                   </span>
                 ))}
               </div>
@@ -195,12 +203,12 @@ const TeacherOverview = ({ teacher }: TeacherOverviewProps) => {
               <div className="mt-2 flex items-center gap-2">
                 <span
                   className={`h-2 w-2 rounded-full ${
-                    teacher.status === "Active" ? "bg-green-500" : "bg-red-500"
+                    teacher.status === "ACTIVE" ? "bg-green-500" : "bg-red-500"
                   }`}
                 />
 
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {teacher.status === "Active"
+                  {teacher.status === "ACTIVE"
                     ? "Currently teaching"
                     : "Not currently teaching"}
                 </span>
@@ -265,7 +273,11 @@ const TeacherOverview = ({ teacher }: TeacherOverviewProps) => {
             </div>
 
             <span className="text-xs text-gray-400 dark:text-gray-500">
-              {teacher.joinedDate}
+              {new Date(teacher.joinedDate).toLocaleDateString("en-KE", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
             </span>
           </div>
         </div>

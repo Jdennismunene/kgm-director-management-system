@@ -5,7 +5,7 @@ import {
   LayoutDashboard,
   UserRound,
 } from "lucide-react";
-import type { Teacher } from "../../data/teachersData";
+import type { Teacher } from "../../services/teacherService";
 
 interface TeacherRecordTabsProps {
   teacher: Teacher;

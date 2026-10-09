@@ -1,11 +1,20 @@
 import { AlertTriangle, Trash2, X } from "lucide-react";
-import type { Teacher } from "../../data/teachersData";
+
+import type { Teacher } from "../../services/teacherService";
+
+// =====================================================
+// PROPS
+// =====================================================
 
 interface DeleteTeacherModalProps {
   teacher: Teacher;
   onClose: () => void;
-  onDelete: (teacher: Teacher) => void;
+  onDelete: (teacher: Teacher) => Promise<void>;
 }
+
+// =====================================================
+// COMPONENT
+// =====================================================
 
 const DeleteTeacherModal = ({
   teacher,
@@ -22,6 +31,7 @@ const DeleteTeacherModal = ({
           </h2>
 
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
           >

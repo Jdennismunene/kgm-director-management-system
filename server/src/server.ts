@@ -15,6 +15,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import noteRoutes from "./routes/noteRoute.js";
 import documentRoutes from "./routes/documentRoute.js";
 import historyRoutes from "./routes/historyRoute.js";
+import teacherRoutes from "./routes/teacherRoutes.js";
 
 const app = express();
 
@@ -82,6 +83,7 @@ app.use("/api", paymentRoutes);
 app.use("/api", noteRoutes);
 app.use("/api", documentRoutes);
 app.use("/api", historyRoutes);
+app.use("/api/teachers", teacherRoutes);
 
 // =====================================================
 // SERVER

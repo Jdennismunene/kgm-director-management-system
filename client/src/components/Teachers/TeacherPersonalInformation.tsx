@@ -1,7 +1,7 @@
 import { Edit, Mail, Phone, UserRound } from "lucide-react";
 import { useState } from "react";
 
-import type { Teacher } from "../../data/teachersData";
+import type { Teacher } from "../../services/teacherService";
 import { useTeachers } from "../../context/TeachersContext";
 import EditTeacherPersonalInformationModal from "./EditTeacherPersonalInformationModal";
 
@@ -16,8 +16,11 @@ const TeacherPersonalInformation = ({
 
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const handleUpdateTeacher = (updatedTeacher: Teacher) => {
-    updateTeacher(updatedTeacher);
+  const handleUpdateTeacher = async (
+    id: string,
+    data: Parameters<typeof updateTeacher>[1],
+  ) => {
+    await updateTeacher(id, data);
     setShowEditModal(false);
   };
 
@@ -118,7 +121,7 @@ const TeacherPersonalInformation = ({
               </p>
 
               <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
-                #{String(teacher.id).padStart(4, "0")}
+                #{teacher.id}
               </p>
             </div>
           </div>
@@ -147,12 +150,12 @@ const TeacherPersonalInformation = ({
             <div className="mt-2 flex items-center gap-2">
               <span
                 className={`h-2.5 w-2.5 rounded-full ${
-                  teacher.status === "Active" ? "bg-green-500" : "bg-red-500"
+                  teacher.status === "ACTIVE" ? "bg-green-500" : "bg-red-500"
                 }`}
               />
 
               <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {teacher.status}
+                {teacher.status === "ACTIVE" ? "Active" : "Inactive"}
               </span>
             </div>
           </div>
@@ -164,7 +167,11 @@ const TeacherPersonalInformation = ({
             </p>
 
             <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-              {teacher.joinedDate}
+              {new Date(teacher.joinedDate).toLocaleDateString("en-KE", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
             </p>
           </div>
 
@@ -175,14 +182,20 @@ const TeacherPersonalInformation = ({
             </p>
 
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {teacher.grade.map((grade) => (
-                <span
-                  key={grade}
-                  className="rounded-md bg-[#365452]/10 px-2.5 py-1 text-xs font-medium text-[#365452] dark:bg-[#8eb0ac]/10 dark:text-[#8eb0ac]"
-                >
-                  {grade}
+              {teacher.grades.length > 0 ? (
+                teacher.grades.map((grade) => (
+                  <span
+                    key={grade.id}
+                    className="rounded-md bg-[#365452]/10 px-2.5 py-1 text-xs font-medium text-[#365452] dark:bg-[#8eb0ac]/10 dark:text-[#8eb0ac]"
+                  >
+                    {grade.name}
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm text-gray-400 dark:text-gray-500">
+                  No grades assigned
                 </span>
-              ))}
+              )}
             </div>
           </div>
         </div>

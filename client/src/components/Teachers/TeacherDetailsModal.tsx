@@ -1,22 +1,41 @@
-import {
-  Mail,
-  Phone,
-  X,
-  CalendarDays,
-  BookOpen,
-} from "lucide-react";
-import type { Teacher } from "../../data/teachersData";
+import { Mail, Phone, X, CalendarDays, BookOpen } from "lucide-react";
+
+import type { Teacher } from "../../services/teacherService";
+
+// =====================================================
+// PROPS
+// =====================================================
 
 interface TeacherDetailsModalProps {
   teacher: Teacher | null;
   onClose: () => void;
 }
 
+// =====================================================
+// COMPONENT
+// =====================================================
+
 const TeacherDetailsModal = ({
   teacher,
   onClose,
 }: TeacherDetailsModalProps) => {
   if (!teacher) return null;
+
+  // =====================================================
+  // DATE FORMATTER
+  // =====================================================
+
+  const formatJoinedDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-KE", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -34,6 +53,7 @@ const TeacherDetailsModal = ({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"
           >
@@ -66,12 +86,12 @@ const TeacherDetailsModal = ({
 
             <span
               className={`rounded-full px-3 py-1 text-xs font-medium ${
-                teacher.status === "Active"
+                teacher.status === "ACTIVE"
                   ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                   : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
               }`}
             >
-              {teacher.status}
+              {teacher.status === "ACTIVE" ? "Active" : "Inactive"}
             </span>
           </div>
 
@@ -117,8 +137,8 @@ const TeacherDetailsModal = ({
 
             {/* Classes */}
             <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400">
                   <BookOpen size={19} />
                 </div>
 
@@ -128,14 +148,20 @@ const TeacherDetailsModal = ({
                   </p>
 
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {teacher.grade.map((className) => (
-                      <span
-                        key={className}
-                        className="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200"
-                      >
-                        {className}
+                    {teacher.grades.length > 0 ? (
+                      teacher.grades.map((grade) => (
+                        <span
+                          key={grade.id}
+                          className="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                        >
+                          {grade.name}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        No classes assigned
                       </span>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
@@ -154,7 +180,7 @@ const TeacherDetailsModal = ({
                   </p>
 
                   <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
-                    {teacher.joinedDate}
+                    {formatJoinedDate(teacher.joinedDate)}
                   </p>
                 </div>
               </div>
@@ -164,6 +190,7 @@ const TeacherDetailsModal = ({
           {/* Footer */}
           <div className="mt-6 flex justify-end border-t border-gray-200 pt-5 dark:border-gray-700">
             <button
+              type="button"
               onClick={onClose}
               className="rounded-lg bg-[#365654] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#2d4846]"
             >

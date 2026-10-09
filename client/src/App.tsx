@@ -38,6 +38,7 @@ import Documentation from "./pages/Ministry/BaptismRecords/Documentation";
 import AllClasses from "./pages/Class/AllClass";
 import AddClass from "./pages/Class/AddClass";
 import ClassMembers from "./pages/Class/ClassMembers";
+import Training from "./pages/Training/Training";
 
 const App = () => {
   // =========================================
@@ -389,12 +390,7 @@ const App = () => {
             ================================== */}
                     <Route
                       path="/training"
-                      element={
-                        <div className="p-6 text-gray-800 dark:text-white">
-                          Training & Certification
-                        </div>
-                      }
-                    />
+                      element={<Training />}/>
                     <Route
                       path="/training/certificates"
                       element={

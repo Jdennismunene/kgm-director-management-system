@@ -7,7 +7,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import type { Teacher } from "../../data/teachersData";
+import type { Teacher } from "../../services/teacherService";
 import UploadTeacherDocumentModal from "./UploadTeacherDocumentModal";
 
 interface TeacherDocumentsProps {
@@ -62,7 +62,13 @@ const TeacherDocuments = ({ teacher }: TeacherDocumentsProps) => {
   };
 
   const handleDownload = (document: TeacherDocument) => {
-    const content = `Teacher Document\n\nName: ${document.name}\nType: ${document.type}\nSize: ${document.size}\nUploaded: ${document.date}\nTeacher: ${teacher.name}`;
+    const content = `Teacher Document
+
+Name: ${document.name}
+Type: ${document.type}
+Size: ${document.size}
+Uploaded: ${document.date}
+Teacher: ${teacher.name}`;
 
     const blob = new Blob([content], {
       type: "text/plain",

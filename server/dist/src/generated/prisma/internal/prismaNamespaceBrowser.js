@@ -50,7 +50,8 @@ export const ModelName = {
     Payment: 'Payment',
     Note: 'Note',
     Document: 'Document',
-    History: 'History'
+    History: 'History',
+    Teacher: 'Teacher'
 };
 /*
  * Enums
@@ -115,6 +116,7 @@ export const LessonScalarFieldEnum = {
     status: 'status',
     score: 'score',
     teacher: 'teacher',
+    teacherId: 'teacherId',
     childId: 'childId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -159,6 +161,7 @@ export const NoteScalarFieldEnum = {
     content: 'content',
     author: 'author',
     role: 'role',
+    teacherId: 'teacherId',
     date: 'date',
     type: 'type',
     pinned: 'pinned',
@@ -188,6 +191,16 @@ export const HistoryScalarFieldEnum = {
     type: 'type',
     user: 'user',
     childId: 'childId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+export const TeacherScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    email: 'email',
+    phone: 'phone',
+    status: 'status',
+    joinedDate: 'joinedDate',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

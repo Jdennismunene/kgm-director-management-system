@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Save } from "lucide-react";
-import type { Teacher } from "../../data/teachersData";
+
+import type { Teacher, UpdateTeacherData } from "../../services/teacherService";
 
 interface EditTeacherModalProps {
   teacher: Teacher | null;
   onClose: () => void;
-  onSave: (updatedTeacher: Teacher) => void;
+  onSave: (id: string, data: UpdateTeacherData) => Promise<void>;
 }
 
 const EditTeacherModal = ({
@@ -13,31 +14,52 @@ const EditTeacherModal = ({
   onClose,
   onSave,
 }: EditTeacherModalProps) => {
-  if (!teacher) return null;
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [status, setStatus] = useState<Teacher["status"]>("ACTIVE");
+  const [selectedGradeIds, setSelectedGradeIds] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
-  const [name, setName] = useState(teacher.name);
-  const [email, setEmail] = useState(teacher.email);
-  const [phone, setPhone] = useState(teacher.phone);
-  const [Grade, setGrade] = useState(teacher.grade.join(", "));
-  const [status, setStatus] = useState<Teacher["status"]>(teacher.status);
+  useEffect(() => {
+    if (!teacher) return;
 
-  const handleSubmit = (e: React.FormEvent) => {
+    setName(teacher.name);
+    setEmail(teacher.email);
+    setPhone(teacher.phone);
+    setStatus(teacher.status);
+    setSelectedGradeIds(teacher.grades.map((grade) => grade.id));
+  }, [teacher]);
+
+  const handleGradeChange = (gradeId: string, checked: boolean) => {
+    setSelectedGradeIds((prev) =>
+      checked ? [...prev, gradeId] : prev.filter((id) => id !== gradeId),
+    );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const updatedTeacher: Teacher = {
-      ...teacher,
-      name,
-      email,
-      phone,
-      grade: Grade
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean),
-      status,
-    };
+    if (!teacher) return;
 
-    onSave(updatedTeacher);
+    try {
+      setSaving(true);
+
+      await onSave(teacher.id, {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        status,
+        gradeIds: selectedGradeIds,
+      });
+    } catch (error) {
+      console.error("Error updating teacher:", error);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (!teacher) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -55,8 +77,10 @@ const EditTeacherModal = ({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+            disabled={saving}
+            className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700 dark:hover:text-gray-200"
           >
             <X size={20} />
           </button>
@@ -75,7 +99,8 @@ const EditTeacherModal = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-teal-900"
+              disabled={saving}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-teal-900"
             />
           </div>
 
@@ -90,7 +115,8 @@ const EditTeacherModal = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-teal-900"
+              disabled={saving}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-teal-900"
             />
           </div>
 
@@ -105,7 +131,8 @@ const EditTeacherModal = ({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-teal-900"
+              disabled={saving}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-teal-900"
             />
           </div>
 
@@ -115,16 +142,37 @@ const EditTeacherModal = ({
               Classes
             </label>
 
-            <input
-              type="text"
-              value={Grade}
-              onChange={(e) => setGrade(e.target.value)}
-              placeholder="e.g. Beginners, Intermediate"
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-teal-900"
-            />
+            <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-gray-300 bg-white p-3 dark:border-gray-600 dark:bg-gray-700">
+              {teacher.grades.length > 0 ? (
+                teacher.grades.map((grade) => (
+                  <label
+                    key={grade.id}
+                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedGradeIds.includes(grade.id)}
+                      onChange={(e) =>
+                        handleGradeChange(grade.id, e.target.checked)
+                      }
+                      disabled={saving}
+                      className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                    />
+
+                    <span className="text-sm text-gray-700 dark:text-gray-200">
+                      {grade.name}
+                    </span>
+                  </label>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No classes assigned to this teacher.
+                </p>
+              )}
+            </div>
 
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Separate multiple classes with commas.
+              Select the classes assigned to this teacher.
             </p>
           </div>
 
@@ -137,10 +185,11 @@ const EditTeacherModal = ({
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as Teacher["status"])}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-teal-900"
+              disabled={saving}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-teal-900"
             >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
             </select>
           </div>
 
@@ -149,17 +198,20 @@ const EditTeacherModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              disabled={saving}
+              className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-700"
+              disabled={saving}
+              className="flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save size={17} />
-              Save Changes
+
+              {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

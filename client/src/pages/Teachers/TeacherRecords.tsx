@@ -20,7 +20,13 @@ const TeacherRecords = () => {
 
   const { teachers } = useTeachers();
 
-  const teacher = teachers.find((item) => item.id === Number(id));
+  /*
+   * Find teacher using the string ID from the URL.
+   *
+   * Teacher IDs are now Prisma cuid() strings,
+   * so we should NOT convert the route parameter to a number.
+   */
+  const teacher = teachers.find((item) => item.id === id);
 
   /*
    * Teacher not found

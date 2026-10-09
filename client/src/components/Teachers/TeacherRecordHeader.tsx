@@ -2,7 +2,7 @@ import { ArrowLeft, Edit, Mail, Phone, UserRound } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import type { Teacher } from "../../data/teachersData";
+import type { Teacher } from "../../services/teacherService";
 import { useTeachers } from "../../context/TeachersContext";
 import EditTeacherModal from "./EditTeacherModal";
 
@@ -28,8 +28,12 @@ const TeacherRecordHeader = ({
     .slice(0, 2)
     .toUpperCase();
 
-  const handleSave = (updatedTeacher: Teacher) => {
-    updateTeacher(updatedTeacher);
+  const handleSave = async (
+    id: string,
+    data: Parameters<typeof updateTeacher>[1],
+  ) => {
+    await updateTeacher(id, data);
+
     setShowEditModal(false);
     onUpdated?.();
   };
@@ -73,17 +77,17 @@ const TeacherRecordHeader = ({
 
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      teacher.status === "Active"
+                      teacher.status === "ACTIVE"
                         ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                         : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                     }`}
                   >
-                    {teacher.status}
+                    {teacher.status === "ACTIVE" ? "Active" : "Inactive"}
                   </span>
                 </div>
 
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Teacher ID: #{String(teacher.id).padStart(4, "0")}
+                  Teacher ID: #{teacher.id}
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-600 dark:text-gray-300">
@@ -122,13 +126,13 @@ const TeacherRecordHeader = ({
             </div>
 
             <div className="flex flex-wrap gap-1.5">
-              {teacher.grade.length > 0 ? (
-                teacher.grade.map((grade) => (
+              {teacher.grades.length > 0 ? (
+                teacher.grades.map((grade) => (
                   <span
-                    key={grade}
+                    key={grade.id}
                     className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                   >
-                    {grade}
+                    {grade.name}
                   </span>
                 ))
               ) : (
@@ -146,7 +150,11 @@ const TeacherRecordHeader = ({
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {teacher.joinedDate}
+              {new Date(teacher.joinedDate).toLocaleDateString("en-KE", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
             </p>
           </div>
 
@@ -157,7 +165,7 @@ const TeacherRecordHeader = ({
             </p>
 
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {teacher.status === "Active"
+              {teacher.status === "ACTIVE"
                 ? "Currently Active"
                 : "Currently Inactive"}
             </p>
